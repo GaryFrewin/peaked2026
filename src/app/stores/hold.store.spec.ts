@@ -2,53 +2,64 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError, Subject } from 'rxjs';
 import { HoldStore } from './hold.store';
 import { HoldApi } from '../data-access/hold.api';
-import { Hold, HoldsResponse } from '../data-contracts/hold.model';
+import {
+  Hold,
+  HoldsResponse,
+  HoldResponse,
+  CreateHoldRequest,
+  DeleteResponse,
+} from '../data-contracts/hold.model';
 
 describe('HoldStore', () => {
   let store: HoldStore;
   let mockApi: jasmine.SpyObj<HoldApi>;
 
-  const mockWallId = 'wall-123';
-  const mockVersionId = 'version-456';
-  const mockHolds: Hold[] = [
-    {
-      id: 1,
-      wall_version_id: 456,
-      x: 0,
-      y: 1,
-      z: 0,
-      usage_count: 5,
-      date_created: '2026-01-01T00:00:00Z',
-      date_modified: '2026-01-01T00:00:00Z'
-    },
-    {
-      id: 2,
-      wall_version_id: 456,
-      x: 1,
-      y: 1.5,
-      z: 0.1,
-      usage_count: 3,
-      date_created: '2026-01-01T00:00:00Z',
-      date_modified: '2026-01-01T00:00:00Z'
-    }
-  ];
+  const mockWallId = 1;
+  const mockVersionId = 2;
+  const mockHold1: Hold = {
+    id: 1,
+    wall_version_id: 2,
+    x: 0,
+    y: 1,
+    z: 0,
+    usage_count: 5,
+    date_created: '2026-01-01T00:00:00Z',
+    date_modified: '2026-01-01T00:00:00Z',
+  };
+  const mockHold2: Hold = {
+    id: 2,
+    wall_version_id: 2,
+    x: 1,
+    y: 1.5,
+    z: 0.1,
+    usage_count: 3,
+    date_created: '2026-01-01T00:00:00Z',
+    date_modified: '2026-01-01T00:00:00Z',
+  };
+  const mockHolds: Hold[] = [mockHold1, mockHold2];
   const mockHoldsResponse: HoldsResponse = {
     data: mockHolds,
     message: 'Success',
-    success: true
+    success: true,
   };
 
   beforeEach(() => {
-    mockApi = jasmine.createSpyObj('HoldApi', ['loadHolds']);
+    mockApi = jasmine.createSpyObj('HoldApi', [
+      'loadHolds',
+      'createHold',
+      'updateHold',
+      'deleteHold',
+    ]);
 
     TestBed.configureTestingModule({
-      providers: [
-        HoldStore,
-        { provide: HoldApi, useValue: mockApi }
-      ]
+      providers: [HoldStore, { provide: HoldApi, useValue: mockApi }],
     });
     store = TestBed.inject(HoldStore);
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INITIALIZATION
+  // ═══════════════════════════════════════════════════════════════════════════
 
   it('should be created', () => {
     expect(store).toBeTruthy();
@@ -60,68 +71,219 @@ describe('HoldStore', () => {
     expect(store.error()).toBeNull();
   });
 
-  it('should call API with correct parameters', () => {
-    mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOAD HOLDS
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    store.loadHolds(mockWallId, mockVersionId);
+  describe('loadHolds', () => {
+    it('should call API with correct parameters', () => {
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
 
-    expect(mockApi.loadHolds).toHaveBeenCalledWith(mockWallId, mockVersionId);
-    expect(store.error()).toBeNull();
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+
+      expect(mockApi.loadHolds).toHaveBeenCalledWith(String(mockWallId), String(mockVersionId));
+      expect(store.error()).toBeNull();
+    });
+
+    it('should update holds signal on successful fetch', () => {
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+
+      expect(store.holds()).toEqual(mockHolds);
+      expect(store.isLoading()).toBe(false);
+      expect(store.error()).toBeNull();
+    });
+
+    it('should handle API errors gracefully', () => {
+      const error = { statusText: 'Server Error', message: 'Network failed' };
+      mockApi.loadHolds.and.returnValue(throwError(() => error));
+
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+
+      expect(store.holds()).toEqual([]);
+      expect(store.isLoading()).toBe(false);
+      expect(store.error()).toContain('Server Error');
+    });
+
+    it('should not make duplicate requests when already loading', () => {
+      const subject = new Subject<HoldsResponse>();
+      mockApi.loadHolds.and.returnValue(subject.asObservable());
+
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+      expect(mockApi.loadHolds).toHaveBeenCalledTimes(1);
+
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+      expect(mockApi.loadHolds).toHaveBeenCalledTimes(1);
+
+      subject.next(mockHoldsResponse);
+      subject.complete();
+    });
   });
 
-  it('should update holds signal on successful fetch', () => {
-    mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CREATE HOLD
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    store.loadHolds(mockWallId, mockVersionId);
+  describe('createHold', () => {
+    const createRequest: CreateHoldRequest = { x: 2.0, y: 3.0, z: 0.5 };
+    const createdHold: Hold = {
+      id: 100,
+      wall_version_id: 2,
+      x: 2.0,
+      y: 3.0,
+      z: 0.5,
+      usage_count: 0,
+      date_created: '2026-01-27T00:00:00Z',
+      date_modified: '2026-01-27T00:00:00Z',
+    };
 
-    expect(store.holds()).toEqual(mockHolds);
-    expect(store.isLoading()).toBe(false);
-    expect(store.error()).toBeNull();
+    beforeEach(() => {
+      // Pre-load some holds
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+    });
+
+    it('should add hold optimistically with temp ID', () => {
+      const subject = new Subject<HoldResponse>();
+      mockApi.createHold.and.returnValue(subject.asObservable());
+
+      store.createHold(mockWallId, mockVersionId, createRequest);
+
+      // Should immediately add a hold with temp ID (negative)
+      const holds = store.holds();
+      expect(holds.length).toBe(3);
+      const tempHold = holds.find((h) => h.id < 0);
+      expect(tempHold).toBeTruthy();
+      expect(tempHold?.x).toBe(2.0);
+    });
+
+    it('should replace temp ID with server ID on success', () => {
+      mockApi.createHold.and.returnValue(
+        of({ data: createdHold, message: 'Created', success: true })
+      );
+
+      store.createHold(mockWallId, mockVersionId, createRequest);
+
+      const holds = store.holds();
+      expect(holds.length).toBe(3);
+      expect(holds.find((h) => h.id === 100)).toBeTruthy();
+      expect(holds.find((h) => h.id < 0)).toBeFalsy();
+    });
+
+    it('should remove hold on API failure', () => {
+      mockApi.createHold.and.returnValue(throwError(() => ({ status: 500 })));
+
+      store.createHold(mockWallId, mockVersionId, createRequest);
+
+      // Should rollback - only original holds remain
+      expect(store.holds().length).toBe(2);
+      expect(store.error()).toContain('Failed to create hold');
+    });
   });
 
-  it('should handle API errors gracefully', () => {
-    const error = { statusText: 'Server Error', message: 'Network failed' };
-    mockApi.loadHolds.and.returnValue(throwError(() => error));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UPDATE HOLD
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    store.loadHolds(mockWallId, mockVersionId);
+  describe('updateHold', () => {
+    const updatedPosition = { x: 5.0, y: 6.0 };
 
-    expect(store.holds()).toEqual([]);
-    expect(store.isLoading()).toBe(false);
-    expect(store.error()).toContain('Server Error');
+    beforeEach(() => {
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+    });
+
+    it('should update hold position optimistically', () => {
+      const subject = new Subject<HoldResponse>();
+      mockApi.updateHold.and.returnValue(subject.asObservable());
+
+      store.updateHold(mockWallId, mockVersionId, 1, updatedPosition);
+
+      const hold = store.holds().find((h) => h.id === 1);
+      expect(hold?.x).toBe(5.0);
+      expect(hold?.y).toBe(6.0);
+    });
+
+    it('should rollback on API failure', () => {
+      mockApi.updateHold.and.returnValue(throwError(() => ({ status: 500 })));
+
+      store.updateHold(mockWallId, mockVersionId, 1, updatedPosition);
+
+      // Should rollback to original position
+      const hold = store.holds().find((h) => h.id === 1);
+      expect(hold?.x).toBe(0); // Original value
+      expect(hold?.y).toBe(1); // Original value
+      expect(store.error()).toContain('Failed to update hold');
+    });
+
+    it('should apply server response on success', () => {
+      const serverHold = { ...mockHold1, x: 5.0, y: 6.0, date_modified: '2026-01-27T12:00:00Z' };
+      mockApi.updateHold.and.returnValue(of({ data: serverHold, message: 'Updated', success: true }));
+
+      store.updateHold(mockWallId, mockVersionId, 1, updatedPosition);
+
+      const hold = store.holds().find((h) => h.id === 1);
+      expect(hold?.date_modified).toBe('2026-01-27T12:00:00Z');
+    });
   });
 
-  it('should clear state when clear() is called', () => {
-    // Load some data first
-    mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
-    store.loadHolds(mockWallId, mockVersionId);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DELETE HOLD
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    expect(store.holds().length).toBe(2);
+  describe('deleteHold', () => {
+    beforeEach(() => {
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+    });
 
-    // Clear it
-    store.clear();
+    it('should remove hold optimistically', () => {
+      const subject = new Subject<DeleteResponse>();
+      mockApi.deleteHold.and.returnValue(subject.asObservable());
 
-    expect(store.holds()).toEqual([]);
-    expect(store.isLoading()).toBe(false);
-    expect(store.error()).toBeNull();
+      store.deleteHold(mockWallId, mockVersionId, 1);
+
+      expect(store.holds().length).toBe(1);
+      expect(store.holds().find((h) => h.id === 1)).toBeFalsy();
+    });
+
+    it('should restore hold on API failure', () => {
+      mockApi.deleteHold.and.returnValue(throwError(() => ({ status: 500 })));
+
+      store.deleteHold(mockWallId, mockVersionId, 1);
+
+      // Should restore the hold
+      expect(store.holds().length).toBe(2);
+      expect(store.holds().find((h) => h.id === 1)).toBeTruthy();
+      expect(store.error()).toContain('Failed to delete hold');
+    });
+
+    it('should keep hold removed on success', () => {
+      mockApi.deleteHold.and.returnValue(of({ message: 'Deleted', success: true }));
+
+      store.deleteHold(mockWallId, mockVersionId, 1);
+
+      expect(store.holds().length).toBe(1);
+      expect(store.holds().find((h) => h.id === 1)).toBeFalsy();
+    });
   });
 
-  it('should not make duplicate requests when already loading', () => {
-    // Use Subject to control when observable completes
-    const subject = new Subject<HoldsResponse>();
-    mockApi.loadHolds.and.returnValue(subject.asObservable());
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CLEAR
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    // First call starts loading
-    store.loadHolds(mockWallId, mockVersionId);
-    expect(mockApi.loadHolds).toHaveBeenCalledTimes(1);
+  describe('clear', () => {
+    it('should clear state when clear() is called', () => {
+      mockApi.loadHolds.and.returnValue(of(mockHoldsResponse));
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+      expect(store.holds().length).toBe(2);
 
-    // Try to load again while still loading - should be blocked by guard
-    store.loadHolds(mockWallId, mockVersionId);
-    
-    // Should still only have been called once
-    expect(mockApi.loadHolds).toHaveBeenCalledTimes(1);
-    
-    // Complete the observable
-    subject.next(mockHoldsResponse);
-    subject.complete();
+      store.clear();
+
+      expect(store.holds()).toEqual([]);
+      expect(store.isLoading()).toBe(false);
+      expect(store.error()).toBeNull();
+    });
   });
 });
