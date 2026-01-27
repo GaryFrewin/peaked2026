@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HomePageComponent } from './home-page.component';
 
 describe('HomePageComponent', () => {
@@ -12,7 +13,10 @@ describe('HomePageComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [HomePageComponent],
-      providers: [{ provide: Router, useValue: mockRouter }],
+      providers: [
+        { provide: Router, useValue: mockRouter },
+        provideAnimationsAsync(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePageComponent);
