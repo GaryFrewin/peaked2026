@@ -1,0 +1,107 @@
+<div class="vr-route-list">
+  <!-- Header with search and selection info -->
+  <header class="vr-route-list__header">
+    <div class="vr-route-list__title">
+      <h1>Select Routes</h1>
+      @if (selectionCount() > 0) {
+        <span class="vr-route-list__count">{{ selectionCount() }} selected</span>
+        <p-button
+          icon="pi pi-times"
+          [text]="true"
+          severity="secondary"
+          (click)="onClearSelection()"
+          pTooltip="Clear selection"
+        />
+      }
+    </div>
+    <div class="vr-route-list__search">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search routes..."
+          [ngModel]="searchFilter()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </span>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  @if (showLoading()) {
+    <div class="vr-route-list__state">
+      <p-progressSpinner ariaLabel="Loading routes" />
+      <p>Loading routes...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (showEmptyState()) {
+    <div class="vr-route-list__state">
+      <i class="pi pi-inbox vr-route-list__state-icon"></i>
+      <h2>No Routes</h2>
+      <p>No climbing routes found for this wall.</p>
+    </div>
+  }
+
+  <!-- No Match State -->
+  @if (showNoMatchState()) {
+    <div class="vr-route-list__state">
+      <i class="pi pi-search vr-route-list__state-icon"></i>
+      <h2>No Matches</h2>
+      <p>No routes match "{{ searchFilter() }}"</p>
+    </div>
+  }
+
+  <!-- Route Grid - Compact tiles for VR -->
+  @if (showRouteGrid()) {
+    <div class="vr-route-list__grid">
+      @for (route of filteredRoutes(); track route.id) {
+        <button
+          class="vr-route-tile"
+          [class.vr-route-tile--selected]="isRouteSelected(route)"
+          [style.--route-color]="getRouteColor(route)"
+          (click)="onRouteClick(route)"
+        >
+          <!-- Grade badge -->
+          <div class="vr-route-tile__grade">
+            V{{ route.forward_grade }}
+            @if (route.reverse_grade !== undefined && route.reverse_grade !== route.forward_grade) {
+              <span class="vr-route-tile__grade-reverse">/{{ route.reverse_grade }}</span>
+            }
+          </div>
+
+          <!-- Route name -->
+          <div class="vr-route-tile__name">{{ route.name }}</div>
+
+          <!-- Styles (if any) -->
+          @if (getStylesText(route)) {
+            <div class="vr-route-tile__styles">{{ getStylesText(route) }}</div>
+          }
+
+          <!-- Star rating -->
+          @if (route.forward_star_rating && route.forward_star_rating > 0) {
+            <div class="vr-route-tile__stars">
+              @for (star of [].constructor(route.forward_star_rating); track $index) {
+                <i class="pi pi-star-fill"></i>
+              }
+            </div>
+          }
+
+          <!-- Selection indicator -->
+          @if (isRouteSelected(route)) {
+            <div class="vr-route-tile__check">
+              <i class="pi pi-check"></i>
+            </div>
+          }
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Footer hint -->
+  <footer class="vr-route-list__footer">
+    <p>Press <strong>Meta button</strong> to return to VR and see selected routes</p>
+  </footer>
+</div>

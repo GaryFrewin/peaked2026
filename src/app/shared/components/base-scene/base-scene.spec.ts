@@ -199,29 +199,74 @@ describe('BaseSceneComponent', () => {
       fixture.detectChanges();
 
       const rendered = component.routeHoldsToRender();
-      expect(rendered[0].color).toBe('#FFFFFF'); // White for single route
+      expect(rendered[0].color).toBe('#FFFFFF'); // White for regular holds
     });
 
-    it('should assign route color to regular holds when multiple routes selected', () => {
+    it('should assign white color to regular holds when multiple routes selected', () => {
       const hold1 = createMockHold(1, 1.0, 2.0, 3.0);
       const hold2 = createMockHold(2, 4.0, 5.0, 6.0);
-      const routeHold1 = createMockRouteHold(1, hold1);
-      const routeHold2 = createMockRouteHold(2, hold2);
+      const routeHold1 = createMockRouteHold(1, hold1); // Regular hold
+      const routeHold2 = createMockRouteHold(2, hold2); // Regular hold
       const route1 = createMockRoute(1, 'Route 1', [routeHold1]);
       const route2 = createMockRoute(2, 'Route 2', [routeHold2]);
 
-      mockRouteStore.getRouteColor.and.callFake((r: Route) =>
-        r.id === 1 ? '#FF6B6B' : '#4ECDC4'
-      );
       (mockRouteStore.selectedRoutes as any).set([route1, route2]);
       fixture.detectChanges();
 
       const rendered = component.routeHoldsToRender();
-      const route1Hold = rendered.find((h: RenderedRouteHold) => h.holdId === 1);
-      const route2Hold = rendered.find((h: RenderedRouteHold) => h.holdId === 2);
+      // All regular holds should be white regardless of route count
+      expect(rendered.every((h) => h.color === '#FFFFFF')).toBe(true);
+    });
 
-      expect(route1Hold?.color).toBe('#FF6B6B');
-      expect(route2Hold?.color).toBe('#4ECDC4');
+    it('should assign gold LINK color when hold is start in one route and end in another', () => {
+      // Same hold used in both routes
+      const sharedHold = createMockHold(1, 1.0, 2.0, 3.0);
+
+      // Route 1: this hold is a START
+      const routeHold1 = createMockRouteHold(1, sharedHold, { forwardhandstart: true });
+      const route1 = createMockRoute(1, 'Route 1', [routeHold1]);
+
+      // Route 2: same hold is an END
+      const routeHold2 = createMockRouteHold(1, sharedHold, { reversehandstart: true });
+      const route2 = createMockRoute(2, 'Route 2', [routeHold2]);
+
+      (mockRouteStore.selectedRoutes as any).set([route1, route2]);
+      fixture.detectChanges();
+
+      const rendered = component.routeHoldsToRender();
+      expect(rendered.length).toBe(1); // Deduplicated
+      expect(rendered[0].color).toBe('#FFD700'); // Gold for link
+    });
+
+    it('should NOT assign link color when same hold is start AND end in SAME route', () => {
+      const hold = createMockHold(1, 1.0, 2.0, 3.0);
+      // Same route has this as both start and end (edge case)
+      const routeHold = createMockRouteHold(1, hold, {
+        forwardhandstart: true,
+        reversehandstart: true,
+      });
+      const route = createMockRoute(1, 'Weird Route', [routeHold]);
+
+      (mockRouteStore.selectedRoutes as any).set([route]);
+      fixture.detectChanges();
+
+      const rendered = component.routeHoldsToRender();
+      // Not a link (same route), start takes precedence
+      expect(rendered[0].color).toBe('#00FF00'); // Green (start)
+    });
+
+    it('should deduplicate holds that appear in multiple routes', () => {
+      const sharedHold = createMockHold(1, 1.0, 2.0, 3.0);
+      const routeHold1 = createMockRouteHold(1, sharedHold);
+      const routeHold2 = createMockRouteHold(1, sharedHold);
+      const route1 = createMockRoute(1, 'Route 1', [routeHold1]);
+      const route2 = createMockRoute(2, 'Route 2', [routeHold2]);
+
+      (mockRouteStore.selectedRoutes as any).set([route1, route2]);
+      fixture.detectChanges();
+
+      const rendered = component.routeHoldsToRender();
+      expect(rendered.length).toBe(1); // Only one sphere for shared hold
     });
 
     it('should include position from hold data', () => {

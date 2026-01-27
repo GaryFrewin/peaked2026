@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, effect, inj
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
+import { RouteStore } from '../../../stores/route.store';
+import { VrRouteListComponent } from '../../components/vr-route-list/vr-route-list';
 
 @Component({
   selector: 'app-vr-climbing',
   standalone: true,
-  imports: [BaseSceneComponent],
+  imports: [BaseSceneComponent, VrRouteListComponent],
   templateUrl: './vr-climbing.html',
   styleUrl: './vr-climbing.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +17,7 @@ import { HoldStore } from '../../../stores/hold.store';
 export class VrClimbingComponent implements OnInit {
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
+  protected readonly routeStore = inject(RouteStore);
 
   private readonly sceneReady = signal(false);
 
@@ -37,6 +40,8 @@ export class VrClimbingComponent implements OnInit {
           console.log('VR: Auto-selecting latest version:', version.id, 'model_path:', version.model_path);
           this.wallStore.selectVersion(version.id);
           this.holdStore.loadHolds(String(walls[0].id), String(version.id));
+          // Also load routes for this wall/version
+          this.routeStore.loadRoutes(walls[0].id, version.id);
         }
       }
     });

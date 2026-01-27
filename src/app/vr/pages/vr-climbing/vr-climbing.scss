@@ -1,0 +1,12 @@
+/**
+ * VR Climbing Page Styles
+ *
+ * In VR mode, the overlay is the full-screen 2D UI
+ * that appears when user presses Meta button.
+ */
+
+.vr-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+}
