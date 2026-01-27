@@ -1,21 +1,15 @@
 <a-scene #scene>
-  @if (wallModelUrl()) {
-    <a-assets timeout="5000">
-      <a-asset-item id="wall-model" [src]="wallModelUrl()"></a-asset-item>
-    </a-assets>
-  }
-
   <!-- Wall Environment with calibrated anchor -->
   <a-entity 
     id="wall-environment" 
     position="0 0 0"
     [attr.visible]="visible()"
   >
-    <!-- Wall GLTF Model -->
+    <!-- Wall GLTF Model - uses direct URL loading like the working playground -->
     @if (wallModelUrl()) {
       <a-entity 
         id="wall-container"
-        gltf-model="#wall-model"
+        [attr.gltf-model]="'url(' + wallModelUrl() + ')'"
         position="0 0 0"
       ></a-entity>
     }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
@@ -15,25 +15,55 @@ export class WallViewerComponent implements OnInit {
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
 
+  private readonly sceneReady = signal(false);
+
+  constructor() {
+    // Effect to auto-select first wall when walls load AND scene is ready
+    effect(() => {
+      const walls = this.wallStore.walls();
+      const isSceneReady = this.sceneReady();
+      const alreadySelected = this.wallStore.selectedWall();
+      const modelPath = this.wallStore.modelPath();
+
+      console.log('WallViewer effect:', {
+        wallsCount: walls.length,
+        isSceneReady,
+        alreadySelected: !!alreadySelected,
+        selectedWallName: alreadySelected?.name,
+        modelPath
+      });
+
+      // Only auto-select when: walls loaded, scene ready, nothing selected yet
+      if (walls.length > 0 && isSceneReady && !alreadySelected) {
+        console.log('Auto-selecting first wall:', walls[0].name);
+        this.wallStore.selectWall(walls[0].id);
+        
+        if (walls[0].wall_versions.length > 0) {
+          const version = walls[0].wall_versions[0];
+          console.log('Auto-selecting version:', version.id, 'model_path:', version.model_path);
+          this.wallStore.selectVersion(version.id);
+          this.holdStore.loadHolds(String(walls[0].id), String(version.id));
+        }
+      }
+    });
+  }
+
   ngOnInit(): void {
+    console.log('WallViewer ngOnInit - current walls:', this.wallStore.walls().length);
+    
     // Load walls if not already loaded
     if (this.wallStore.walls().length === 0) {
+      console.log('WallViewer: Loading walls...');
       this.wallStore.loadWalls();
+    } else {
+      console.log('WallViewer: Walls already loaded, count:', this.wallStore.walls().length);
+      // If walls exist but none selected, we need to trigger selection
+      // The effect will handle this when sceneReady becomes true
     }
   }
 
   onSceneReady(): void {
-    console.log('Desktop scene ready');
-    
-    // Auto-select first wall and version if none selected
-    const walls = this.wallStore.walls();
-    if (walls.length > 0 && !this.wallStore.selectedWall()) {
-      this.wallStore.selectWall(walls[0].id);
-      if (walls[0].wall_versions.length > 0) {
-        const version = walls[0].wall_versions[0];
-        this.wallStore.selectVersion(version.id);
-        this.holdStore.loadHolds(String(walls[0].id), String(version.id));
-      }
-    }
+    console.log('Desktop scene ready - setting sceneReady signal');
+    this.sceneReady.set(true);
   }
 }

@@ -47,17 +47,23 @@ export class WallStore {
   // ========== ACTIONS ==========
 
   loadWalls(): void {
-    if (this.isLoading()) return;
+    if (this.isLoading()) {
+      console.log('WallStore: Already loading, skipping');
+      return;
+    }
 
+    console.log('WallStore: Starting loadWalls API call');
     this.isLoading.set(true);
     this.error.set(null);
 
     this.api.loadWalls().subscribe({
       next: (response) => {
+        console.log('WallStore: Received walls:', response.data.length, response.data);
         this.walls.set(response.data);
         this.isLoading.set(false);
       },
       error: (err) => {
+        console.error('WallStore: API error:', err);
         this.error.set(`Failed to load walls: ${err.statusText || err.message}`);
         this.isLoading.set(false);
       }
