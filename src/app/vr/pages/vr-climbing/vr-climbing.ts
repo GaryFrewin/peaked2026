@@ -5,6 +5,7 @@ import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { SettingsStore } from '../../../stores/settings.store';
 import { VrRouteListComponent } from '../../components/vr-route-list/vr-route-list';
+import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
 
 // Register A-Frame behaviours
 import '../../behaviours';
@@ -12,7 +13,7 @@ import '../../behaviours';
 @Component({
   selector: 'app-vr-climbing',
   standalone: true,
-  imports: [BaseSceneComponent, VrRouteListComponent],
+  imports: [BaseSceneComponent, VrRouteListComponent, SettingsPanelComponent],
   templateUrl: './vr-climbing.html',
   styleUrl: './vr-climbing.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

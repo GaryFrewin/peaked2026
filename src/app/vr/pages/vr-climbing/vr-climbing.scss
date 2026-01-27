@@ -9,4 +9,10 @@
   position: absolute;
   inset: 0;
   z-index: 100;
+
+  .settings-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
 }
