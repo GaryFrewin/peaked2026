@@ -7,10 +7,16 @@ import {
   effect,
   inject,
   DestroyRef,
+  output,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Hold, HoldsResponse } from '../../../data-contracts/hold.model';
+import { EditorService } from '../../../shared/editor/editor.service';
+import { EditorStore } from '../../../stores/editor.store';
+
+/** Color constants for hold visualization */
+const HOLD_COLOR_SELECTED = '#ffcc00'; // Gold/yellow for selected holds
 
 @Component({
   selector: 'app-hold-loader',
@@ -23,6 +29,8 @@ import { Hold, HoldsResponse } from '../../../data-contracts/hold.model';
 export class HoldLoaderComponent {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly editorService = inject(EditorService);
+  private readonly editorStore = inject(EditorStore);
 
   readonly wallId = input.required<number>();
   readonly versionId = input.required<number>();
@@ -33,6 +41,9 @@ export class HoldLoaderComponent {
   readonly holds = signal<Hold[]>([]);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
+
+  /** Emitted when a hold is clicked */
+  readonly holdClicked = output<number>();
 
   constructor() {
     // Load holds when inputs change
@@ -64,5 +75,27 @@ export class HoldLoaderComponent {
           console.error('Failed to load holds:', err);
         },
       });
+  }
+
+  /**
+   * Handle hold click - forward to EditorService and emit event
+   */
+  onHoldClick(holdId: number): void {
+    this.editorService.handleHoldClick(holdId);
+    this.holdClicked.emit(holdId);
+  }
+
+  /**
+   * Check if a hold is selected
+   */
+  isHoldSelected(holdId: number): boolean {
+    return this.editorStore.selectedHoldIds().has(holdId);
+  }
+
+  /**
+   * Get the color for a hold based on selection state
+   */
+  getHoldColor(holdId: number): string {
+    return this.isHoldSelected(holdId) ? HOLD_COLOR_SELECTED : this.holdColor();
   }
 }

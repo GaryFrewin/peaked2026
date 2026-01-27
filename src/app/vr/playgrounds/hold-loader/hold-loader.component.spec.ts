@@ -1,14 +1,18 @@
-import { provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HoldLoaderComponent } from './hold-loader.component';
 import { Hold } from '../../../data-contracts/hold.model';
+import { EditorService } from '../../../shared/editor/editor.service';
+import { EditorStore } from '../../../stores/editor.store';
 
 describe('HoldLoaderComponent', () => {
   let component: HoldLoaderComponent;
   let fixture: ComponentFixture<HoldLoaderComponent>;
   let httpMock: HttpTestingController;
+  let mockEditorService: jasmine.SpyObj<EditorService>;
+  let mockEditorStore: jasmine.SpyObj<EditorStore>;
 
   const mockHolds: Hold[] = [
     {
@@ -34,12 +38,22 @@ describe('HoldLoaderComponent', () => {
   ];
 
   beforeEach(async () => {
+    mockEditorService = jasmine.createSpyObj('EditorService', ['handleHoldClick'], {
+      activeToolId: signal('view'),
+    });
+    
+    mockEditorStore = jasmine.createSpyObj('EditorStore', ['toggleHoldSelection'], {
+      selectedHoldIds: signal(new Set<number>()),
+    });
+
     await TestBed.configureTestingModule({
       imports: [HoldLoaderComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        { provide: EditorService, useValue: mockEditorService },
+        { provide: EditorStore, useValue: mockEditorStore },
       ],
     }).compileComponents();
 
@@ -113,5 +127,65 @@ describe('HoldLoaderComponent', () => {
 
     expect(component.error()).toBeTruthy();
     expect(component.isLoading()).toBe(false);
+  });
+
+  describe('hold click interaction', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('wallId', 1);
+      fixture.componentRef.setInput('versionId', 3);
+      fixture.componentRef.setInput('modelUrl', 'https://test.com/model.glb');
+      fixture.detectChanges();
+
+      const req = httpMock.expectOne('https://192.168.0.113:5000/peaked/walls/1/versions/3/holds-plus');
+      req.flush({ data: mockHolds, success: true, message: 'Success' });
+    });
+
+    it('should forward click to EditorService.handleHoldClick', () => {
+      component.onHoldClick(7);
+      expect(mockEditorService.handleHoldClick).toHaveBeenCalledWith(7);
+    });
+
+    it('should emit holdClicked event when hold is clicked', () => {
+      const emitSpy = spyOn(component.holdClicked, 'emit');
+      
+      component.onHoldClick(7);
+      
+      expect(emitSpy).toHaveBeenCalledWith(7);
+    });
+  });
+
+  describe('hold selection styling', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('wallId', 1);
+      fixture.componentRef.setInput('versionId', 3);
+      fixture.componentRef.setInput('modelUrl', 'https://test.com/model.glb');
+      fixture.detectChanges();
+
+      const req = httpMock.expectOne('https://192.168.0.113:5000/peaked/walls/1/versions/3/holds-plus');
+      req.flush({ data: mockHolds, success: true, message: 'Success' });
+    });
+
+    it('should return true for isHoldSelected when hold is in selectedHoldIds', () => {
+      // Set selected hold IDs in the mock store
+      (mockEditorStore.selectedHoldIds as any).set(new Set([7]));
+      
+      expect(component.isHoldSelected(7)).toBeTrue();
+      expect(component.isHoldSelected(8)).toBeFalse();
+    });
+
+    it('should return selected color for selected holds', () => {
+      (mockEditorStore.selectedHoldIds as any).set(new Set([7]));
+      
+      expect(component.getHoldColor(7)).toBe('#ffcc00'); // Selected color (gold/yellow)
+      expect(component.getHoldColor(8)).toBe('#00ff00'); // Default color
+    });
+
+    it('should use custom holdColor input for unselected holds', () => {
+      fixture.componentRef.setInput('holdColor', '#ff0000');
+      (mockEditorStore.selectedHoldIds as any).set(new Set([7]));
+      
+      expect(component.getHoldColor(7)).toBe('#ffcc00'); // Selected color overrides
+      expect(component.getHoldColor(8)).toBe('#ff0000'); // Uses input color
+    });
   });
 });

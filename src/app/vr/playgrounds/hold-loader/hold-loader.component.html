@@ -14,10 +14,12 @@
   <!-- Holds -->
   @for (hold of holds(); track hold.id) {
     <a-sphere
+      class="clickable hold"
       [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
       radius="0.05"
-      [attr.color]="holdColor()"
-      opacity="0.8">
+      [attr.color]="getHoldColor(hold.id)"
+      opacity="0.8"
+      (click)="onHoldClick(hold.id)">
     </a-sphere>
   }
 
