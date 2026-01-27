@@ -164,3 +164,148 @@
     }
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLE OVERRIDES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.p-datatable {
+  .p-datatable-table {
+    background: transparent;
+  }
+
+  .p-datatable-thead > tr > th {
+    background: var(--pk-surface-card);
+    border-color: var(--pk-border-subtle);
+    color: var(--pk-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem;
+  }
+
+  .p-datatable-tbody > tr {
+    background: transparent;
+    transition: background 0.2s;
+
+    > td {
+      border-color: var(--pk-border-subtle);
+      color: var(--pk-text-primary);
+      padding: 0.75rem;
+    }
+
+    &:hover {
+      background: var(--pk-surface-hover);
+    }
+  }
+
+  .p-datatable-emptymessage > td {
+    border: none;
+  }
+}
+
+/* Paginator */
+.p-paginator {
+  background: transparent;
+  border: none;
+  padding: 1rem 0 0;
+  justify-content: center;
+
+  .p-paginator-element {
+    color: var(--pk-text-muted);
+    min-width: 2rem;
+    height: 2rem;
+
+    &:hover {
+      background: var(--pk-surface-hover);
+      color: var(--pk-text-primary);
+    }
+
+    &.p-paginator-page-selected {
+      background: var(--pk-primary);
+      color: white;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DIALOG OVERRIDES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.p-dialog {
+  background: var(--pk-surface-card);
+  border: 1px solid var(--pk-border-subtle);
+  border-radius: var(--pk-radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+  .p-dialog-header {
+    background: transparent;
+    border-bottom: 1px solid var(--pk-border-subtle);
+    padding: 1.25rem 1.5rem;
+    color: var(--pk-text-primary);
+
+    .p-dialog-title {
+      font-weight: 600;
+    }
+  }
+
+  .p-dialog-content {
+    background: transparent;
+    padding: 1.5rem;
+    color: var(--pk-text-primary);
+  }
+
+  .p-dialog-footer {
+    background: transparent;
+    border-top: 1px solid var(--pk-border-subtle);
+    padding: 1rem 1.5rem;
+  }
+}
+
+.p-dialog-mask {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INPUT OVERRIDES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.p-inputnumber,
+.p-inputtext,
+.p-textarea {
+  &.p-inputtext {
+    background: var(--pk-surface-hover);
+    border-color: var(--pk-border-default);
+    color: var(--pk-text-primary);
+
+    &::placeholder {
+      color: var(--pk-text-muted);
+    }
+
+    &:focus,
+    &:enabled:focus {
+      border-color: var(--pk-primary);
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+    }
+  }
+}
+
+.p-inputnumber {
+  width: 100%;
+
+  .p-inputnumber-input {
+    width: 100%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTON GLOBAL OVERRIDES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Primary button - full width for action buttons */
+.add-climb-btn {
+  width: 100%;
+  justify-content: center;
+}

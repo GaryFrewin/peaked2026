@@ -1,0 +1,225 @@
+<div class="logger-page">
+  <!-- Header -->
+  <header class="logger-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1 class="logger-title">Distance Logger</h1>
+    <div class="header-spacer"></div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="logger-content">
+    <!-- Today's Progress Ring -->
+    <section class="progress-section">
+      <div class="radial-progress" [style.--progress]="displayedProgress() + '%'">
+        <svg viewBox="0 0 120 120" class="radial-svg">
+          <!-- Background circle -->
+          <circle
+            cx="60"
+            cy="60"
+            r="54"
+            fill="none"
+            stroke="var(--pk-grey-700)"
+            stroke-width="8"
+          />
+          <!-- Progress arc -->
+          <circle
+            cx="60"
+            cy="60"
+            r="54"
+            fill="none"
+            stroke="var(--pk-primary)"
+            stroke-width="8"
+            stroke-linecap="round"
+            class="progress-ring"
+            [style.--progress-value]="displayedProgress()"
+          />
+        </svg>
+        <div class="radial-content">
+          <span class="radial-value">{{ displayedDistance() }}</span>
+          <span class="radial-unit">/ {{ dailyGoal() }}m</span>
+          <span class="radial-label">Climbed Today!</span>
+        </div>
+      </div>
+      @if (todaysDistance() >= dailyGoal()) {
+        <span class="goal-badge">🎉 Goal reached!</span>
+      }
+    </section>
+
+    <!-- Add Climb Button -->
+    <section class="action-section">
+      <p-button
+        label="Add Climb"
+        icon="pi pi-plus"
+        (click)="openAddModal()"
+        styleClass="add-climb-btn"
+      />
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <span class="stat-value">{{ formatDistance(totalDistanceAllTime()) }}</span>
+        <span class="stat-label">Total Climbed</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ totalClimbsAllTime() }}</span>
+        <span class="stat-label">Total Climbs</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ averageDifficulty() }}</span>
+        <span class="stat-label">Avg Difficulty</span>
+      </div>
+    </section>
+
+    <!-- Climbs Table -->
+    <section class="table-section">
+      <h2 class="section-title">Climb History</h2>
+      
+      <p-table
+        [value]="climbs()"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        styleClass="climb-table"
+        [tableStyle]="{ 'min-width': '100%' }"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Date</th>
+            <th>Distance</th>
+            <th>Grade</th>
+            <th class="hide-mobile">Notes</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-climb>
+          <tr>
+            <td>{{ climb.date | date: 'MMM d' }}</td>
+            <td>{{ climb.distance }}m</td>
+            <td>
+              <span class="grade-badge" [style.border-color]="getDifficultyColor(climb.difficulty)">
+                {{ climb.grade }}
+              </span>
+            </td>
+            <td class="hide-mobile notes-cell">{{ climb.notes || '—' }}</td>
+            <td class="action-cell">
+              <button class="delete-btn" (click)="deleteClimb(climb.id)" aria-label="Delete climb">
+                <i class="pi pi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="5" class="empty-message">No climbs logged yet. Start climbing!</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+  </main>
+
+  <!-- Add Climb Modal -->
+  <p-dialog
+    [(visible)]="showAddModal"
+    header="Add Climb"
+    [modal]="true"
+    [dismissableMask]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="add-climb-dialog"
+    [style]="{ width: '90vw', maxWidth: '400px' }"
+  >
+    <div class="modal-content">
+      <!-- Distance Selection -->
+      <div class="form-group">
+        <label class="form-label">Distance (meters)</label>
+        <div class="distance-shortcuts">
+          @for (d of distanceShortcuts; track d) {
+            <button
+              type="button"
+              class="shortcut-btn"
+              [class.active]="newClimb().distance === d"
+              (click)="setDistance(d)"
+            >
+              {{ d }}m
+            </button>
+          }
+        </div>
+        <p-inputNumber
+          [(ngModel)]="newClimb().distance"
+          [min]="1"
+          [max]="100"
+          suffix="m"
+          placeholder="Custom"
+          styleClass="distance-input"
+        />
+      </div>
+
+      <!-- Grade Selection -->
+      <div class="form-group">
+        <label class="form-label">Grade</label>
+        <div class="grade-grid">
+          @for (g of gradeOptions; track g) {
+            <button
+              type="button"
+              class="grade-btn"
+              [class.active]="newClimb().grade === g"
+              (click)="setGrade(g)"
+            >
+              {{ g }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Difficulty Slider -->
+      <div class="form-group">
+        <label class="form-label">
+          Difficulty: <strong>{{ newClimb().difficulty }}</strong> / 10
+        </label>
+        <p-slider
+          [ngModel]="newClimb().difficulty"
+          (ngModelChange)="setDifficulty($event)"
+          [min]="1"
+          [max]="10"
+          [step]="1"
+          styleClass="difficulty-slider"
+        />
+        <div class="difficulty-labels">
+          <span>Easy</span>
+          <span>Hard</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="newClimb().notes"
+          rows="2"
+          placeholder="How did it feel?"
+          class="notes-textarea"
+        ></textarea>
+      </div>
+    </div>
+
+    <ng-template #footer>
+      <div class="modal-footer">
+        <p-button
+          label="Cancel"
+          [text]="true"
+          (click)="closeAddModal()"
+        />
+        <p-button
+          label="Add Climb"
+          icon="pi pi-check"
+          (click)="addClimb()"
+          [disabled]="!newClimb().distance"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

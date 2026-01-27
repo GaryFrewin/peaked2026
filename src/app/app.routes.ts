@@ -62,4 +62,12 @@ export const routes: Routes = [
       ),
     canActivate: [AuthGuard],
   },
+  {
+    path: 'distance-logger',
+    loadComponent: () =>
+      import('./desktop/pages/distance-logger/distance-logger.component').then(
+        (m) => m.DistanceLoggerComponent
+      ),
+    canActivate: [AuthGuard],
+  },
 ];
