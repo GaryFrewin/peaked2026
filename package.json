@@ -1,12 +1,17 @@
 {
   "name": "peaked2026",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "node server.js",
+    "dev": "ng serve",
+    "build": "ng build --configuration production",
+    "postinstall": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "prettier": {
     "printWidth": 100,
@@ -32,6 +37,7 @@
     "@primeuix/themes": "^2.0.3",
     "aframe": "^1.7.1",
     "bootstrap": "^5.3.8",
+    "express": "^4.22.1",
     "primeicons": "^7.0.0",
     "primeng": "^20.4.0",
     "rxjs": "~7.8.0",
