@@ -15,5 +15,6 @@ export { registerMarkerPlacerComponent } from './marker-placer';
 export { registerWallManipulatorComponent } from './wall-manipulator';
 export { registerSurfaceCursorComponent } from './surface-cursor';
 export { registerTriangleAlignComponent } from './triangle-align';
+export { registerWireframeRevealBehaviour } from './wireframe-reveal/wireframe-reveal';
 
 console.log('[behaviours] A-Frame behaviours registered');

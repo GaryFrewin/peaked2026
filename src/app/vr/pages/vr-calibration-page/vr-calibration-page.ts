@@ -28,6 +28,7 @@ import { registerMarkerPlacerComponent } from '../../behaviours/marker-placer';
 import { registerWallManipulatorComponent } from '../../behaviours/wall-manipulator';
 import { registerSurfaceCursorComponent } from '../../behaviours/surface-cursor';
 import { registerTriangleAlignComponent } from '../../behaviours/triangle-align';
+import { registerWireframeRevealBehaviour } from '../../behaviours/wireframe-reveal/wireframe-reveal';
 
 // Register on module load
 registerVrButtonComponent();
@@ -35,6 +36,7 @@ registerMarkerPlacerComponent();
 registerWallManipulatorComponent();
 registerSurfaceCursorComponent();
 registerTriangleAlignComponent();
+registerWireframeRevealBehaviour();
 
 @Component({
   selector: 'app-vr-calibration-page',
@@ -389,8 +391,21 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   private onAlignmentComplete(event: CustomEvent): void {
     console.log('[VrCalibrationPage] Alignment complete:', event.detail);
     
-    // Enable NEXT to proceed to Step 4 (final confirmation)
-    this.store.setCanProceed(true);
+    // Trigger wireframe reveal effect on the garage (wall model)
+    const garage = document.getElementById('garage') as any;
+    if (garage) {
+      console.log('[VrCalibrationPage] Starting wireframe reveal effect');
+      garage.setAttribute('wireframe-reveal', 'duration: 3000; color: #00ff88');
+      
+      // Listen for completion
+      garage.addEventListener('wireframe-reveal-complete', () => {
+        console.log('[VrCalibrationPage] Wireframe reveal complete');
+        this.store.setCanProceed(true);
+      }, { once: true });
+    } else {
+      // No garage found, just enable proceed
+      this.store.setCanProceed(true);
+    }
   }
 
   /**
