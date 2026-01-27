@@ -132,11 +132,16 @@
       <a-text value="Mark the 3D Wall" position="0 0.15 0.01" align="center" color="#ffffff" width="1.0" font="mozillavr"></a-text>
       <a-text value="Match the same 3 corners on\nthe virtual wall model" position="0 0.02 0.01" align="center" color="#c9d1d9" width="1.0" baseline="top"></a-text>
       
-      <!-- NEXT Button -->
-      <a-entity id="step2-next-button" position="0 -0.25 0.01" class="intersectable" vr-button (vr-button-click)="onNextClick()">
-        <a-plane id="step2-next-button-bg" width="0.35" height="0.1" color="#238636" class="intersectable clickable"></a-plane>
-        <a-text value="NEXT" position="0 0.01 0.001" align="center" color="#ffffff" width="0.7"></a-text>
-      </a-entity>
+      <!-- Model marker counter -->
+      <a-text [attr.value]="'Model Markers: ' + modelMarkersPlaced() + ' / 3'" position="0 -0.14 0.01" align="center" color="#8b949e" width="0.8"></a-text>
+      
+      <!-- NEXT Button - only show when 3 model markers placed -->
+      @if (modelMarkersPlaced() >= 3) {
+        <a-entity id="step2-next-button" position="0 -0.25 0.01" class="intersectable" vr-button (vr-button-click)="onNextClick()">
+          <a-plane id="step2-next-button-bg" width="0.35" height="0.1" color="#238636" class="intersectable clickable"></a-plane>
+          <a-text value="NEXT" position="0 0.01 0.001" align="center" color="#ffffff" width="0.7"></a-text>
+        </a-entity>
+      }
       
       <a-text value="Step 2 of 5 · Model Markers" position="0 -0.38 0.01" align="center" color="#484f58" width="0.8"></a-text>
     </a-entity>
@@ -269,13 +274,25 @@
       raycaster="objects: .clickable; showLine: true; far: 10">
     </a-entity>
     
-    <!-- Right Controller with marker-placer -->
+    <!-- Right Controller with marker-placer and surface-cursor -->
     <a-entity 
       id="rightController" 
       laser-controls="hand: right"
       raycaster="objects: .clickable, .intersectable, .grabbable; showLine: true; far: 10"
-      marker-placer="enabled: false">
+      marker-placer="enabled: false"
+      surface-cursor="enabled: false; cursorEl: #surface-cursor-visual; targetClass: intersectable">
     </a-entity>
+    
+    <!-- Surface cursor visual - shows intersection point on wall -->
+    <a-box
+      id="surface-cursor-visual"
+      visible="false"
+      width="0.03"
+      height="0.03"
+      depth="0.03"
+      color="#00ff00"
+      material="emissive: #00ff00; emissiveIntensity: 0.5">
+    </a-box>
   </a-entity>
 
 </a-scene>

@@ -26,11 +26,13 @@ import { WallStore } from '../../../stores/wall.store';
 import { registerVrButtonComponent } from '../../behaviours/vr-button';
 import { registerMarkerPlacerComponent } from '../../behaviours/marker-placer';
 import { registerWallManipulatorComponent } from '../../behaviours/wall-manipulator';
+import { registerSurfaceCursorComponent } from '../../behaviours/surface-cursor';
 
 // Register on module load
 registerVrButtonComponent();
 registerMarkerPlacerComponent();
 registerWallManipulatorComponent();
+registerSurfaceCursorComponent();
 
 @Component({
   selector: 'app-vr-calibration-page',
@@ -51,6 +53,7 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   // ═══════════════════════════════════════════════════════════════════════════
 
   readonly markersPlaced = signal(0);
+  readonly modelMarkersPlaced = signal(0);
   private readonly sceneReady = signal(false);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -143,12 +146,15 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     // Get controller reference
     this.rightController = document.getElementById('rightController');
 
-    // Listen for marker-placed events
+    // Listen for marker-placed events (Step 1 - real markers)
     if (this.rightController) {
-      this.rightController.addEventListener('marker-placed', ((
-        event: CustomEvent
-      ) => {
+      this.rightController.addEventListener('marker-placed', ((event: CustomEvent) => {
         this.onMarkerPlaced(event);
+      }) as EventListener);
+
+      // Listen for surface-point-selected events (Step 2 - model markers)
+      this.rightController.addEventListener('surface-point-selected', ((event: CustomEvent) => {
+        this.onSurfacePointSelected(event);
       }) as EventListener);
     }
   }
@@ -165,6 +171,52 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     // Enable NEXT button when all 3 markers placed
     if (count >= 3) {
       console.log('[VrCalibrationPage] All markers placed - enabling NEXT');
+      this.store.setCanProceed(true);
+    }
+  }
+
+  /**
+   * Called when surface-cursor emits a point on the 3D model (Step 2)
+   */
+  private onSurfacePointSelected(event: CustomEvent): void {
+    // Only handle in Step 2
+    if (this.currentPhase() !== 'step2') return;
+
+    const currentCount = this.modelMarkersPlaced();
+    if (currentCount >= 3) {
+      console.log('[VrCalibrationPage] Already placed 3 model markers');
+      return;
+    }
+
+    const { point } = event.detail;
+    const markerIndex = currentCount + 1;
+    console.log(`[VrCalibrationPage] Model marker ${markerIndex} world point:`, point);
+
+    // Show and position the marker
+    const marker = document.getElementById(`model-marker-${markerIndex}`) as any;
+    if (marker) {
+      // Markers are children of wall-container, so convert world point to local space
+      const wallContainer = document.getElementById('wall-container') as any;
+      if (wallContainer && wallContainer.object3D) {
+        // Create a THREE.Vector3 from the point
+        const worldPoint = new (window as any).THREE.Vector3(point.x, point.y, point.z);
+        const localPoint = wallContainer.object3D.worldToLocal(worldPoint);
+        console.log(`[VrCalibrationPage] Converted to local:`, localPoint);
+        
+        marker.object3D.position.copy(localPoint);
+      } else {
+        // Fallback - use world coords (may be wrong if wall-container moved)
+        marker.setAttribute('position', `${point.x} ${point.y} ${point.z}`);
+      }
+      
+      marker.setAttribute('visible', 'true');
+    }
+
+    this.modelMarkersPlaced.set(markerIndex);
+
+    // Enable NEXT when all 3 placed
+    if (markerIndex >= 3) {
+      console.log('[VrCalibrationPage] All model markers placed - enabling NEXT');
       this.store.setCanProceed(true);
     }
   }
@@ -191,11 +243,20 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
    * Called when NEXT button is clicked on any step
    */
   onNextClick(): void {
-    console.log('[VrCalibrationPage] NEXT clicked');
+    console.log('[VrCalibrationPage] NEXT clicked, current phase:', this.currentPhase());
 
     // Disable marker-placer when leaving step1
     if (this.currentPhase() === 'step1' && this.rightController) {
       this.rightController.setAttribute('marker-placer', 'enabled: false');
+      // Enable surface-cursor for step2
+      this.rightController.setAttribute('surface-cursor', 'enabled: true; cursorEl: #surface-cursor-visual; targetClass: intersectable');
+      console.log('[VrCalibrationPage] Enabled surface-cursor for Step 2');
+    }
+
+    // Disable surface-cursor when leaving step2
+    if (this.currentPhase() === 'step2' && this.rightController) {
+      this.rightController.setAttribute('surface-cursor', 'enabled: false');
+      console.log('[VrCalibrationPage] Disabled surface-cursor');
     }
 
     this.store.setCanProceed(true);

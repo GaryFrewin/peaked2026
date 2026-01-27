@@ -13,5 +13,6 @@ import './wall-opacity';
 export { registerVrButtonComponent } from './vr-button';
 export { registerMarkerPlacerComponent } from './marker-placer';
 export { registerWallManipulatorComponent } from './wall-manipulator';
+export { registerSurfaceCursorComponent } from './surface-cursor';
 
 console.log('[behaviours] A-Frame behaviours registered');

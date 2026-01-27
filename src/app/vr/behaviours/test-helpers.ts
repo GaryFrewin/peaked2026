@@ -93,9 +93,13 @@ export function createMockObject3D(x = 0, y = 0, z = 0) {
     position,
     rotation: createMockEuler(0, 0, 0),
     scale: createMockVector3(1, 1, 1),
+    visible: true,
     getWorldPosition(target: any) {
       target.copy(position);
       return target;
+    },
+    lookAt(_x: number, _y: number, _z: number) {
+      // Mock lookAt - just tracks that it was called
     },
   };
 }
@@ -107,10 +111,29 @@ export function createMockElement(id: string, x = 0, y = 0, z = 0) {
   const object3D = createMockObject3D(x, y, z);
   const listeners: Record<string, Function[]> = {};
   const attributes: Record<string, any> = {};
+  const classes = new Set<string>();
 
   return {
     id,
     object3D,
+    classList: {
+      add(className: string) {
+        classes.add(className);
+      },
+      remove(className: string) {
+        classes.delete(className);
+      },
+      contains(className: string) {
+        return classes.has(className);
+      },
+      toggle(className: string) {
+        if (classes.has(className)) {
+          classes.delete(className);
+        } else {
+          classes.add(className);
+        }
+      },
+    },
     getAttribute(name: string) {
       return attributes[name] ?? null;
     },
