@@ -105,7 +105,7 @@ export function createMockObject3D(x = 0, y = 0, z = 0) {
 }
 
 /**
- * Creates a mock A-Frame element
+ * Creates a mock A-Frame element for testing
  */
 export function createMockElement(id: string, x = 0, y = 0, z = 0) {
   const object3D = createMockObject3D(x, y, z);

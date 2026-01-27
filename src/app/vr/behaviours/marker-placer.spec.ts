@@ -59,6 +59,8 @@ describe('MarkerPlacerComponent', () => {
       ),
       removeEventListener: jasmine.createSpy('removeEventListener'),
       emit: jasmine.createSpy('emit'),
+      // Components map - raycaster is undefined so getTipPosition falls back to object3D
+      components: {},
       object3D: {
         getWorldPosition: jasmine
           .createSpy('getWorldPosition')

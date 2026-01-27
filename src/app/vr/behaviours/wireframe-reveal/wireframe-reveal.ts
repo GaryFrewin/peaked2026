@@ -1,5 +1,4 @@
 declare var AFRAME: any;
-const THREE = AFRAME.THREE;
 
 /**
  * Wireframe Reveal Effect
@@ -11,7 +10,13 @@ const THREE = AFRAME.THREE;
  * Events: Emits 'wireframe-reveal-complete' when animation finishes.
  */
 export function registerWireframeRevealBehaviour(): void {
+  if (typeof AFRAME === 'undefined') {
+    console.warn('[wireframe-reveal] AFRAME not available, skipping registration');
+    return;
+  }
   if (AFRAME.components['wireframe-reveal']) return;
+
+  const THREE = AFRAME.THREE;
 
   AFRAME.registerComponent('wireframe-reveal', {
     schema: {

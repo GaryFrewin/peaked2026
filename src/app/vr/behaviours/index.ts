@@ -9,6 +9,10 @@ import './dynamic-skybox';
 import './occlude-skybox';
 import './wall-opacity';
 
+// Auto-register calibrated-anchor for anchor restoration in VR scenes
+import { registerCalibratedAnchorComponent } from './calibrated-anchor';
+registerCalibratedAnchorComponent();
+
 // Re-export registration functions for components that need explicit registration
 export { registerVrButtonComponent } from './vr-button';
 export { registerMarkerPlacerComponent } from './marker-placer';
@@ -16,5 +20,6 @@ export { registerWallManipulatorComponent } from './wall-manipulator';
 export { registerSurfaceCursorComponent } from './surface-cursor';
 export { registerTriangleAlignComponent } from './triangle-align';
 export { registerWireframeRevealBehaviour } from './wireframe-reveal/wireframe-reveal';
+export { registerCalibratedAnchorComponent } from './calibrated-anchor';
 
 console.log('[behaviours] A-Frame behaviours registered');

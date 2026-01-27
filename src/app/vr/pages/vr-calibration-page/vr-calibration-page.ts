@@ -29,6 +29,7 @@ import { registerWallManipulatorComponent } from '../../behaviours/wall-manipula
 import { registerSurfaceCursorComponent } from '../../behaviours/surface-cursor';
 import { registerTriangleAlignComponent } from '../../behaviours/triangle-align';
 import { registerWireframeRevealBehaviour } from '../../behaviours/wireframe-reveal/wireframe-reveal';
+import { registerCalibratedAnchorComponent } from '../../behaviours/calibrated-anchor';
 
 // Register on module load
 registerVrButtonComponent();
@@ -37,6 +38,7 @@ registerWallManipulatorComponent();
 registerSurfaceCursorComponent();
 registerTriangleAlignComponent();
 registerWireframeRevealBehaviour();
+registerCalibratedAnchorComponent();
 
 @Component({
   selector: 'app-vr-calibration-page',
@@ -114,6 +116,16 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   readonly canProceed = this.store.canProceed;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // ANCHOR STATE (for complete panel feedback)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /** The anchor ID displayed after successful anchor creation */
+  readonly anchorId = signal<string | null>(null);
+  
+  /** Whether anchor creation is in progress */
+  readonly anchorCreating = signal(false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE STATE
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -134,10 +146,10 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   readonly showStep4Panel = computed(() => this.currentPhase() === 'step4');
   readonly showCompletePanel = computed(() => this.currentPhase() === 'complete');
   
-  /** Wall model should be visible in steps 2, 3, and 4 */
+  /** Wall model should be visible in steps 2, 3, 4, AND complete (anchored) */
   readonly showWallModel = computed(() => {
     const phase = this.currentPhase();
-    return phase === 'step2' || phase === 'step3' || phase === 'step4';
+    return phase === 'step2' || phase === 'step3' || phase === 'step4' || phase === 'complete';
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -196,6 +208,11 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     if (this.wallContainer) {
       this.wallContainer.addEventListener('alignment-complete', ((event: CustomEvent) => {
         this.onAlignmentComplete(event);
+      }) as EventListener);
+      
+      // Listen for anchor-created event (Step 4 → Complete)
+      this.wallContainer.addEventListener('anchor-created', ((event: CustomEvent) => {
+        this.onAnchorCreated(event);
       }) as EventListener);
     }
   }
@@ -336,10 +353,15 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       console.log('[VrCalibrationPage] Re-enabled marker-placer for Step 4 fine-tune');
     }
     
-    // Disable marker-placer when leaving step4
-    if (this.currentPhase() === 'step4' && this.rightController) {
-      this.rightController.setAttribute('marker-placer', 'enabled: false');
-      console.log('[VrCalibrationPage] Disabled marker-placer on complete');
+    // Create anchor when leaving step4 (transition to complete)
+    if (this.currentPhase() === 'step4') {
+      if (this.rightController) {
+        this.rightController.setAttribute('marker-placer', 'enabled: false');
+        console.log('[VrCalibrationPage] Disabled marker-placer on complete');
+      }
+      
+      // Create the calibration anchor
+      this.createCalibrationAnchor();
     }
 
     this.store.setCanProceed(true);
@@ -511,5 +533,47 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     console.log('[VrCalibrationPage] Navigating home');
     this.store.reset();
     this.router.navigate(['/']);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ANCHOR CREATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Create a WebXR persistent anchor at the current wall position.
+   * This anchor will be restored when vr-climbing loads.
+   */
+  private createCalibrationAnchor(): void {
+    if (!this.wallContainer) {
+      this.wallContainer = document.getElementById('wall-container');
+    }
+
+    if (!this.wallContainer) {
+      console.error('[VrCalibrationPage] Cannot create anchor - wall-container not found');
+      return;
+    }
+
+    const anchorComponent = (this.wallContainer as any).components?.['calibrated-anchor'];
+    if (!anchorComponent) {
+      console.error('[VrCalibrationPage] Cannot create anchor - calibrated-anchor component not found');
+      return;
+    }
+
+    console.log('[VrCalibrationPage] Creating persistent anchor for wall calibration...');
+    this.anchorCreating.set(true);
+    anchorComponent.createAnchor();
+  }
+
+  /**
+   * Called when calibrated-anchor emits anchor-created event
+   */
+  private onAnchorCreated(event: CustomEvent): void {
+    const { persistentHandle, scale } = event.detail;
+    console.log('[VrCalibrationPage] Anchor created successfully!', { persistentHandle, scale });
+
+    this.anchorCreating.set(false);
+    this.anchorId.set(persistentHandle);
+
+    console.log('[VrCalibrationPage] Wall calibration complete! Anchor ID:', persistentHandle);
   }
 }
