@@ -25,10 +25,12 @@ import { WallStore } from '../../../stores/wall.store';
 // Register A-Frame components
 import { registerVrButtonComponent } from '../../behaviours/vr-button';
 import { registerMarkerPlacerComponent } from '../../behaviours/marker-placer';
+import { registerWallManipulatorComponent } from '../../behaviours/wall-manipulator';
 
 // Register on module load
 registerVrButtonComponent();
 registerMarkerPlacerComponent();
+registerWallManipulatorComponent();
 
 @Component({
   selector: 'app-vr-calibration-page',

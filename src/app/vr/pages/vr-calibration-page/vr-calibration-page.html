@@ -146,7 +146,8 @@
     <!-- ═══════════════════════════════════════════════════════ -->
     <a-entity 
       id="wall-container" 
-      position="0 0 -2">
+      position="0 0 -2"
+      wall-manipulator="leftController: #leftController; rightController: #rightController">
       @if (modelPath()) {
         <a-entity
           id="garage"
