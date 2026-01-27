@@ -28,8 +28,8 @@
   xr-mode-ui="XRMode: ar; enterARButton: #ar-enter-btn"
   webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking, anchors;"
   renderer="colorManagement: true;"
-  background="color: #1a1a2e"
-  fog="type: exponential; color: #1a1a3e; density: 0.05"
+  [attr.background]="passthroughEnabled() ? 'color: transparent' : 'color: #1a1a2e'"
+  [attr.fog]="passthroughEnabled() ? '' : 'type: exponential; color: #1a1a3e; density: 0.05'"
 >
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- CALIBRATION LAND - Sky and Floor (hidden in passthrough)-->
@@ -145,15 +145,18 @@
       
       <a-text value="Step 2 of 5 · Model Markers" position="0 -0.38 0.01" align="center" color="#484f58" width="0.8"></a-text>
     </a-entity>
+  }
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- WALL MODEL - 3D climbing wall for Step 2 calibration   -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <a-entity 
-      id="wall-container" 
-      position="0 0 -2"
-      wall-manipulator="leftController: #leftController; rightController: #rightController"
-      triangle-align="animate: true; animationDuration: 1000">
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- WALL MODEL - 3D climbing wall (visible in Steps 2-4)    -->
+  <!-- Always rendered, visibility controlled to preserve state -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <a-entity 
+    id="wall-container" 
+    position="0 0 -2"
+    [attr.visible]="showWallModel()"
+    wall-manipulator="leftController: #leftController; rightController: #rightController"
+    triangle-align="animate: false">
       @if (modelPath()) {
         <a-entity
           id="garage"
@@ -185,7 +188,6 @@
       <a-sphere id="model-marker-2" visible="false" radius="0.015" color="#4ecdc4" material="emissive: #4ecdc4; emissiveIntensity: 0.3" class="model-marker intersectable"></a-sphere>
       <a-sphere id="model-marker-3" visible="false" radius="0.015" color="#ffe66d" material="emissive: #ffe66d; emissiveIntensity: 0.3" class="model-marker intersectable"></a-sphere>
     </a-entity>
-  }
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- STEP 3 PANEL - Alignment (Passthrough ON)               -->

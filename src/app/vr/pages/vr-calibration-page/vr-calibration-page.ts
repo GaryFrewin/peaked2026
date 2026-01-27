@@ -128,6 +128,12 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   readonly showStep3Panel = computed(() => this.currentPhase() === 'step3');
   readonly showStep4Panel = computed(() => this.currentPhase() === 'step4');
   readonly showCompletePanel = computed(() => this.currentPhase() === 'complete');
+  
+  /** Wall model should be visible in steps 2, 3, and 4 */
+  readonly showWallModel = computed(() => {
+    const phase = this.currentPhase();
+    return phase === 'step2' || phase === 'step3' || phase === 'step4';
+  });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LIFECYCLE
@@ -320,9 +326,14 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   
   /**
    * Trigger the triangle alignment algorithm.
-   * Converts stored marker positions to THREE.Vector3 and calls align().
+   * Gets current world positions of markers and calls align().
    */
   private triggerAlignment(): void {
+    // Re-fetch wall-container in case it wasn't available at scene load
+    if (!this.wallContainer) {
+      this.wallContainer = document.getElementById('wall-container');
+    }
+    
     if (!this.wallContainer) {
       console.error('[VrCalibrationPage] No wall-container found');
       return;
@@ -335,29 +346,40 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       return;
     }
     
-    // Validate we have 3 markers in each set
-    if (this.realMarkerPositions.length !== 3 || this.modelMarkerPositions.length !== 3) {
-      console.error('[VrCalibrationPage] Need exactly 3 markers in each set',
-        'real:', this.realMarkerPositions.length,
-        'model:', this.modelMarkerPositions.length);
+    // Validate we have 3 real markers stored
+    if (this.realMarkerPositions.length !== 3) {
+      console.error('[VrCalibrationPage] Need exactly 3 real markers, have:', this.realMarkerPositions.length);
       return;
     }
     
-    // Convert to THREE.Vector3
     const THREE = (window as any).THREE;
+    
+    // Convert stored real marker positions to THREE.Vector3
     const realPositions = this.realMarkerPositions.map(
       p => new THREE.Vector3(p.x, p.y, p.z)
     );
-    const modelPositions = this.modelMarkerPositions.map(
-      p => new THREE.Vector3(p.x, p.y, p.z)
-    );
+    
+    // Get CURRENT world positions of model markers (like old code does)
+    // This ensures we get accurate positions even if wall-container was moved
+    const modelPositions: any[] = [];
+    for (let i = 1; i <= 3; i++) {
+      const marker = document.getElementById(`model-marker-${i}`) as any;
+      if (marker && marker.object3D) {
+        const worldPos = new THREE.Vector3();
+        marker.object3D.getWorldPosition(worldPos);
+        modelPositions.push(worldPos);
+        console.log(`[VrCalibrationPage] Model marker ${i} world pos:`, worldPos.x.toFixed(4), worldPos.y.toFixed(4), worldPos.z.toFixed(4));
+      } else {
+        console.error(`[VrCalibrationPage] Model marker ${i} not found or has no object3D`);
+        return;
+      }
+    }
     
     console.log('[VrCalibrationPage] Triggering alignment with:');
-    console.log('  Real positions:', this.realMarkerPositions);
-    console.log('  Model positions:', this.modelMarkerPositions);
+    console.log('  Real positions (world):', realPositions.map((p: any) => ({ x: p.x.toFixed(4), y: p.y.toFixed(4), z: p.z.toFixed(4) })));
+    console.log('  Model positions (world):', modelPositions.map((p: any) => ({ x: p.x.toFixed(4), y: p.y.toFixed(4), z: p.z.toFixed(4) })));
     
-    // Call align with animate=true for visual feedback
-    triangleAlign.data.animate = true;
+    // Call align
     triangleAlign.align(realPositions, modelPositions);
   }
   
