@@ -174,6 +174,21 @@ export class EditorStore {
   }
 
   /**
+   * Toggle a hold's selection state (select if unselected, deselect if selected)
+   */
+  toggleHoldSelection(holdId: number): void {
+    this.selectedHoldIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(holdId)) {
+        next.delete(holdId);
+      } else {
+        next.add(holdId);
+      }
+      return next;
+    });
+  }
+
+  /**
    * Clear all hold selections
    */
   clearSelection(): void {
