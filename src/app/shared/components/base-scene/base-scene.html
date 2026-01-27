@@ -36,6 +36,18 @@
       </a-sphere>
     }
 
+    <!-- All Holds - glowing white spheres with hover/keyboard selection -->
+    @for (hold of holds(); track hold.id) {
+      <a-sphere
+        class="hold"
+        [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
+        radius="0.04"
+        [attr.material]="getHoldMaterial(hold.id)"
+        (mouseenter)="onHoldHover(hold.id)"
+        (mouseleave)="onHoldHoverEnd(hold.id)">
+      </a-sphere>
+    }
+
     <!-- Extension point: context-specific entities -->
     <ng-content select="[slot=entities]" />
   </a-entity>

@@ -37,7 +37,7 @@ interface HoldRoleMap {
   regularIn: Route[]; // Routes where this hold is just a regular hold
 }
 
-// Route hold color constants
+// Route hold color constants (for route visualization only)
 const COLORS = {
   START: '#00FF00', // Green for start holds
   END: '#20E7FF', // Cyan for end holds
@@ -64,9 +64,24 @@ export class BaseSceneComponent implements AfterViewInit {
   readonly wallModelUrl = input<string>('');
   readonly holds = input<Hold[]>([]);
   readonly visible = input(true);
+  
+  /**
+   * Callback to get material string for a hold.
+   * Parent component provides this to control hold styling.
+   * Default: simple white material.
+   */
+  readonly holdMaterialFn = input<(holdId: number) => string>(() => 'color: #FFFFFF; opacity: 0.8');
 
   // Outputs
   readonly sceneReady = output<void>();
+  
+  /**
+   * Raw hold interaction events - parent decides what to do with them.
+   * BaseScene doesn't know about selection, editing, or modes.
+   */
+  readonly holdHovered = output<number>();
+  readonly holdHoverEnded = output<number>();
+  readonly holdClicked = output<number>();
 
   // Route visualization from store
   readonly selectedRoutes = this.routeStore.selectedRoutes;
@@ -204,5 +219,31 @@ export class BaseSceneComponent implements AfterViewInit {
       },
       { once: true }
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RAW EVENT EMITTERS (dumb passthrough - parent handles logic)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Emit raw hover event - parent decides what to do
+   */
+  onHoldHover(holdId: number): void {
+    this.holdHovered.emit(holdId);
+  }
+
+  /**
+   * Emit raw hover end event - parent decides what to do
+   */
+  onHoldHoverEnd(holdId: number): void {
+    this.holdHoverEnded.emit(holdId);
+  }
+
+  /**
+   * Get material for a hold via the injected function.
+   * BaseScene doesn't know about selection/hover - parent provides the logic.
+   */
+  getHoldMaterial(holdId: number): string {
+    return this.holdMaterialFn()(holdId);
   }
 }
