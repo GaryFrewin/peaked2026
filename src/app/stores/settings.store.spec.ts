@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SettingsStore } from './settings.store';
+import { environment } from '../../environments/environment';
 
 describe('SettingsStore', () => {
   let store: SettingsStore;
@@ -12,8 +13,8 @@ describe('SettingsStore', () => {
   });
 
   describe('skybox selection', () => {
-    it('should default to no skybox (empty path)', () => {
-      expect(store.selectedSkyboxPath()).toBe('');
+    it('should default to Above Clouds skybox', () => {
+      expect(store.selectedSkyboxPath()).toBe(environment.aboveClouds);
     });
 
     it('should return the path when a skybox is selected', () => {

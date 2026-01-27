@@ -18,8 +18,11 @@ export class SettingsStore {
     { name: 'Northern Lights', key: 'northernLights', path: environment.northernLights ?? '' },
   ];
 
-  // Selected skybox path - empty string means no skybox
-  private readonly _selectedSkyboxPath = signal<string>('');
+  // Default to Above Clouds skybox
+  private readonly defaultSkybox = environment.aboveClouds ?? '';
+
+  // Selected skybox path - defaults to Above Clouds
+  private readonly _selectedSkyboxPath = signal<string>(this.defaultSkybox);
   readonly selectedSkyboxPath = this._selectedSkyboxPath.asReadonly();
 
   // Occlude skybox - when true, real wall is visible through skybox
