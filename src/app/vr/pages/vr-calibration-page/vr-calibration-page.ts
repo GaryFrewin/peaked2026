@@ -56,6 +56,18 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   readonly modelMarkersPlaced = signal(0);
   private readonly sceneReady = signal(false);
 
+  /**
+   * Real marker world positions (Step 1).
+   * These are the VR-tracked positions where the user placed markers on the real wall.
+   */
+  private readonly realMarkerPositions: Array<{ x: number; y: number; z: number }> = [];
+
+  /**
+   * Model marker local positions (Step 2).
+   * These are local-space positions on the GLTF model where the user placed markers.
+   */
+  private readonly modelMarkerPositions: Array<{ x: number; y: number; z: number }> = [];
+
   // ═══════════════════════════════════════════════════════════════════════════
   // WALL STORE STATE (exposed for template)
   // ═══════════════════════════════════════════════════════════════════════════
@@ -164,8 +176,20 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private onMarkerPlaced(event: CustomEvent): void {
-    const { count } = event.detail;
-    console.log(`[VrCalibrationPage] Marker placed: ${count}/3`);
+    const { count, position } = event.detail;
+    console.log(`[VrCalibrationPage] Marker placed: ${count}/3 at`, position);
+    
+    // Store the real marker world position
+    if (position) {
+      // Make sure we replace or add at the correct index
+      this.realMarkerPositions[count - 1] = {
+        x: position.x,
+        y: position.y,
+        z: position.z,
+      };
+      console.log('[VrCalibrationPage] Stored real marker positions:', this.realMarkerPositions);
+    }
+    
     this.markersPlaced.set(count);
 
     // Enable NEXT button when all 3 markers placed
@@ -204,9 +228,24 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
         console.log(`[VrCalibrationPage] Converted to local:`, localPoint);
         
         marker.object3D.position.copy(localPoint);
+        
+        // Store the local position for alignment
+        this.modelMarkerPositions[markerIndex - 1] = {
+          x: localPoint.x,
+          y: localPoint.y,
+          z: localPoint.z,
+        };
+        console.log('[VrCalibrationPage] Stored model marker positions:', this.modelMarkerPositions);
       } else {
         // Fallback - use world coords (may be wrong if wall-container moved)
         marker.setAttribute('position', `${point.x} ${point.y} ${point.z}`);
+        
+        // Store world coords as fallback
+        this.modelMarkerPositions[markerIndex - 1] = {
+          x: point.x,
+          y: point.y,
+          z: point.z,
+        };
       }
       
       marker.setAttribute('visible', 'true');
