@@ -1,0 +1,19 @@
+<app-base-scene
+  [wallModelUrl]="wallStore.modelPath() ?? ''"
+  [holds]="holdStore.holds()"
+  [visible]="true"
+  (sceneReady)="onSceneReady()"
+>
+  <!-- Desktop-specific: 2D overlay for route drawing -->
+  <div slot="overlay" class="scene-overlay">
+    <div class="overlay-ui">
+      @if (wallStore.isLoading() || holdStore.isLoading()) {
+        <span>Loading...</span>
+      } @else if (wallStore.selectedWall()) {
+        <span>{{ wallStore.selectedWall()?.name }}</span>
+      } @else {
+        <span>Desktop View</span>
+      }
+    </div>
+  </div>
+</app-base-scene>

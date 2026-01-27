@@ -41,4 +41,18 @@ export const routes: Routes = [
         (m) => m.HoldLoaderPageComponent
       ),
   },
+  {
+    path: 'desktop/viewer',
+    loadComponent: () =>
+      import('./desktop/pages/wall-viewer/wall-viewer').then(
+        (m) => m.WallViewerComponent
+      ),
+  },
+  {
+    path: 'vr/viewer',
+    loadComponent: () =>
+      import('./vr/pages/vr-climbing/vr-climbing').then(
+        (m) => m.VrClimbingComponent
+      ),
+  },
 ];

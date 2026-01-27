@@ -1,0 +1,37 @@
+<a-scene #scene>
+  @if (wallModelUrl()) {
+    <a-assets timeout="5000">
+      <a-asset-item id="wall-model" [src]="wallModelUrl()"></a-asset-item>
+    </a-assets>
+  }
+
+  <!-- Wall Environment with calibrated anchor -->
+  <a-entity 
+    id="wall-environment" 
+    position="0 0 0"
+    [attr.visible]="visible()"
+  >
+    <!-- Wall GLTF Model -->
+    @if (wallModelUrl()) {
+      <a-entity 
+        id="wall-container"
+        gltf-model="#wall-model"
+        position="0 0 0"
+      ></a-entity>
+    }
+
+    <!-- Holds Container -->
+    <a-entity id="hold-container" position="0 0 0">
+      <app-hold-renderer [holds]="holds()" />
+    </a-entity>
+
+    <!-- Extension point: context-specific entities -->
+    <ng-content select="[slot=entities]" />
+  </a-entity>
+
+  <!-- Extension point: environment (sky, lights, etc) -->
+  <ng-content select="[slot=environment]" />
+</a-scene>
+
+<!-- 2D overlay slot for desktop features -->
+<ng-content select="[slot=overlay]" />

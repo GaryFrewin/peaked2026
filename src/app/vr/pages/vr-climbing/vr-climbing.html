@@ -1,0 +1,9 @@
+<app-base-scene
+  [wallModelUrl]="wallStore.modelPath() ?? ''"
+  [holds]="holdStore.holds()"
+  [visible]="true"
+  (sceneReady)="onSceneReady()"
+>
+  <!-- VR-specific: Skybox -->
+  <a-sky slot="environment" color="#87CEEB"></a-sky>
+</app-base-scene>
