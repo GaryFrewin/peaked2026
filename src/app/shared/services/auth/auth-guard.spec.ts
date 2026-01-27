@@ -51,7 +51,7 @@ describe('AuthGuard', () => {
     });
   });
 
-  it('should redirect to home when not authenticated', (done) => {
+  it('should redirect to login when not authenticated', (done) => {
     const mockUrlTree = {} as UrlTree;
     (router.parseUrl as jasmine.Spy).and.returnValue(mockUrlTree);
 
@@ -61,7 +61,7 @@ describe('AuthGuard', () => {
       guard.subscribe({
         next: (result) => {
           expect(result).toBe(mockUrlTree);
-          expect(router.parseUrl).toHaveBeenCalledWith('');
+          expect(router.parseUrl).toHaveBeenCalledWith('/login');
           done();
         }
       });

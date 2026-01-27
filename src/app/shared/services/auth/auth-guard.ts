@@ -11,7 +11,7 @@ export const AuthGuard: () => Observable<boolean | UrlTree> = () => {
   return authService.verifyAuthStatus().pipe(
     map((isLoggedIn) => {
       if (!isLoggedIn) {
-        return router.parseUrl('');
+        return router.parseUrl('/login');
       }
       return isLoggedIn;
     })

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './shared/services/auth/auth-guard';
 
 export const routes: Routes = [
   {
@@ -12,6 +13,7 @@ export const routes: Routes = [
       import('./desktop/pages/home-page/home-page.component').then(
         (m) => m.HomePageComponent
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'login',
@@ -26,6 +28,7 @@ export const routes: Routes = [
       import('./vr/playgrounds/basic-scene/basic-scene.component').then(
         (m) => m.BasicSceneComponent
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'vr/gltf-loader',
@@ -33,6 +36,7 @@ export const routes: Routes = [
       import('./vr/playgrounds/gltf-loader/gltf-loader-page.component').then(
         (m) => m.GltfLoaderPageComponent
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'vr/hold-loader',
@@ -40,6 +44,7 @@ export const routes: Routes = [
       import('./vr/playgrounds/hold-loader/hold-loader-page.component').then(
         (m) => m.HoldLoaderPageComponent
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'desktop/viewer',
@@ -47,6 +52,7 @@ export const routes: Routes = [
       import('./desktop/pages/wall-viewer/wall-viewer').then(
         (m) => m.WallViewerComponent
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'vr/viewer',
@@ -54,5 +60,6 @@ export const routes: Routes = [
       import('./vr/pages/vr-climbing/vr-climbing').then(
         (m) => m.VrClimbingComponent
       ),
+    canActivate: [AuthGuard],
   },
 ];
