@@ -128,6 +128,9 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   readonly showStep1Panel = computed(() => this.currentPhase() === 'step1');
   readonly showStep2Panel = computed(() => this.currentPhase() === 'step2');
   readonly showStep3Panel = computed(() => this.currentPhase() === 'step3');
+  
+  /** Model should only be intersectable in step2 (placing model markers) */
+  readonly modelIntersectable = computed(() => this.currentPhase() === 'step2');
   readonly showStep4Panel = computed(() => this.currentPhase() === 'step4');
   readonly showCompletePanel = computed(() => this.currentPhase() === 'complete');
   

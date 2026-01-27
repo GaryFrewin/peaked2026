@@ -162,7 +162,7 @@
           id="garage"
           [attr.gltf-model]="'url(' + modelPath() + ')'"
           position="0 0 0"
-          class="intersectable">
+          [class.intersectable]="modelIntersectable()">
         </a-entity>
       } @else {
         <!-- Placeholder when no model loaded -->
