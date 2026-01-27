@@ -1,14 +1,24 @@
 <!-- VR Calibration Page Template -->
 <!-- Phase 1: AR entry overlay + Welcome panel with BEGIN button -->
 
-<!-- Desktop/Browser Overlay - Click to enter AR -->
+<!-- Desktop/Browser Overlay -->
 <div class="ar-overlay">
   <div class="ar-overlay__content">
-    <h1>Wall Calibration</h1>
-    <p>Put on your headset and click below to begin</p>
-    <button class="ar-enter-btn" id="ar-enter-btn">
-      ENTER AR
-    </button>
+    @if (showCompletePanel()) {
+      <!-- Calibration Complete State -->
+      <h1>✓ Calibration Complete</h1>
+      <p>Your wall is now aligned and ready to use</p>
+      <button class="ar-enter-btn ar-enter-btn--success" (click)="goHome()">
+        RETURN HOME
+      </button>
+    } @else {
+      <!-- Initial State - Enter AR -->
+      <h1>Wall Calibration</h1>
+      <p>Put on your headset and click below to begin</p>
+      <button class="ar-enter-btn" id="ar-enter-btn">
+        ENTER AR
+      </button>
+    }
   </div>
 </div>
 
@@ -174,11 +184,12 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   @if (showCompletePanel()) {
     <a-entity id="complete-panel" position="0 1.6 -2">
-      <a-plane width="1.2" height="0.5" color="#1a1a2e" material="opacity: 0.9; transparent: true" class="intersectable"></a-plane>
-      <a-plane position="0 0.22 0.001" width="1.2" height="0.008" color="#4caf50"></a-plane>
-      <a-text value="✓ COMPLETE" position="0 0.12 0.01" align="center" color="#4caf50" width="1.0" font="mozillavr"></a-text>
-      <a-text value="Calibration saved!\nYour wall is now aligned." position="0 -0.02 0.01" align="center" color="#c9d1d9" width="1.0" baseline="top"></a-text>
-      <a-text value="Step 5 of 5 · Done" position="0 -0.22 0.01" align="center" color="#484f58" width="0.8"></a-text>
+      <a-plane width="1.4" height="0.7" color="#1a1a2e" material="opacity: 0.9; transparent: true" class="intersectable"></a-plane>
+      <a-plane position="0 0.32 0.001" width="1.4" height="0.008" color="#4caf50"></a-plane>
+      <a-text value="✓ CALIBRATION COMPLETE" position="0 0.2 0.01" align="center" color="#4caf50" width="1.2" font="mozillavr"></a-text>
+      <a-text value="Your wall is now aligned!" position="0 0.05 0.01" align="center" color="#c9d1d9" width="1.2"></a-text>
+      <a-text value="Exit VR and return to the\nhome page to select your\nwall and start climbing." position="0 -0.12 0.01" align="center" color="#8b949e" width="1.0" baseline="top"></a-text>
+      <a-text value="Press the Oculus button to exit" position="0 -0.3 0.01" align="center" color="#484f58" width="0.9"></a-text>
     </a-entity>
   }
 

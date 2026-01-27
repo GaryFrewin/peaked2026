@@ -13,6 +13,7 @@ import {
   computed,
   inject,
 } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { CalibrationStore } from '../../../stores/calibration.store';
 
@@ -33,6 +34,7 @@ registerVrButtonComponent();
 })
 export class VrCalibrationPageComponent {
   private readonly store = inject(CalibrationStore);
+  private readonly router = inject(Router);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // STORE STATE (exposed for template)
@@ -73,5 +75,14 @@ export class VrCalibrationPageComponent {
     console.log('[VrCalibrationPage] NEXT clicked');
     this.store.setCanProceed(true);
     this.store.nextPhase();
+  }
+
+  /**
+   * Navigate back to home page after calibration complete
+   */
+  goHome(): void {
+    console.log('[VrCalibrationPage] Navigating home');
+    this.store.reset();
+    this.router.navigate(['/']);
   }
 }

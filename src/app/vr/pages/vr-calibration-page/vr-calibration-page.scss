@@ -66,4 +66,17 @@ a-scene {
     background: #1a7f37;
     transform: scale(0.98);
   }
+
+  // Success variant for completion state
+  &--success {
+    background: #1f6feb;
+
+    &:hover {
+      background: #388bfd;
+    }
+
+    &:active {
+      background: #1158c7;
+    }
+  }
 }
