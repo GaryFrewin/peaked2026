@@ -39,7 +39,8 @@
     <!-- All Holds - glowing white spheres with hover/keyboard selection -->
     @for (hold of holds(); track hold.id) {
       <a-sphere
-        class="hold"
+        class="hold interactable"
+        [attr.data-hold-id]="hold.id"
         [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
         radius="0.04"
         [attr.material]="getHoldMaterial(hold.id)"
@@ -50,6 +51,13 @@
 
     <!-- Extension point: context-specific entities -->
     <ng-content select="[slot=entities]" />
+  </a-entity>
+
+  <!-- Mouse cursor for desktop raycasting (enables mouseenter/mouseleave on entities) -->
+  <a-entity 
+    id="mouseCursor" 
+    cursor="rayOrigin: mouse; fuse: false" 
+    raycaster="objects: .interactable, .hold; far: 100">
   </a-entity>
 
   <!-- Extension point: environment (sky, lights, etc) -->
