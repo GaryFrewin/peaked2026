@@ -185,6 +185,11 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       this.rightController.addEventListener('surface-point-selected', ((event: CustomEvent) => {
         this.onSurfacePointSelected(event);
       }) as EventListener);
+      
+      // Listen for markers-updated events (Step 4 - fine-tune drag)
+      this.rightController.addEventListener('markers-updated', ((event: CustomEvent) => {
+        this.onMarkersUpdated(event);
+      }) as EventListener);
     }
     
     // Listen for alignment-complete event (Step 3)
@@ -324,6 +329,18 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       // Trigger alignment for Step 3
       this.triggerAlignment();
     }
+    
+    // Enable marker-placer for fine-tune dragging when entering step4
+    if (this.currentPhase() === 'step3' && this.rightController) {
+      this.rightController.setAttribute('marker-placer', 'enabled: true');
+      console.log('[VrCalibrationPage] Re-enabled marker-placer for Step 4 fine-tune');
+    }
+    
+    // Disable marker-placer when leaving step4
+    if (this.currentPhase() === 'step4' && this.rightController) {
+      this.rightController.setAttribute('marker-placer', 'enabled: false');
+      console.log('[VrCalibrationPage] Disabled marker-placer on complete');
+    }
 
     this.store.setCanProceed(true);
     this.store.nextPhase();
@@ -409,6 +426,82 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       // No garage found, just enable proceed
       this.store.setCanProceed(true);
     }
+  }
+
+  /**
+   * Called when marker-placer emits markers-updated (Step 4 - fine-tune drag)
+   * Re-runs alignment with new marker positions.
+   */
+  private onMarkersUpdated(event: CustomEvent): void {
+    // Only process in step4 (fine-tune mode)
+    if (this.currentPhase() !== 'step4') {
+      return;
+    }
+    
+    console.log('[VrCalibrationPage] Markers updated, re-aligning in real-time');
+    
+    const { positions } = event.detail;
+    if (!positions || positions.length < 3) {
+      console.warn('[VrCalibrationPage] Invalid positions in markers-updated event');
+      return;
+    }
+    
+    // Update stored real marker positions from the event
+    for (let i = 0; i < 3; i++) {
+      if (positions[i]) {
+        this.realMarkerPositions[i] = {
+          x: positions[i].x,
+          y: positions[i].y,
+          z: positions[i].z,
+        };
+      }
+    }
+    
+    // Re-run alignment with updated positions
+    this.runQuickAlignment();
+  }
+  
+  /**
+   * Quick alignment for fine-tune mode (no wireframe effect).
+   * Uses stored model marker LOCAL positions transformed through current wall transform.
+   */
+  private runQuickAlignment(): void {
+    if (!this.wallContainer) {
+      this.wallContainer = document.getElementById('wall-container');
+    }
+    
+    if (!this.wallContainer) {
+      console.error('[VrCalibrationPage] No wall-container found for realignment');
+      return;
+    }
+    
+    const triangleAlign = (this.wallContainer as any).components?.['triangle-align'];
+    if (!triangleAlign) {
+      console.error('[VrCalibrationPage] triangle-align component not found');
+      return;
+    }
+    
+    const THREE = (window as any).THREE;
+    
+    // Real marker positions (new positions after drag)
+    const realVectors = this.realMarkerPositions.map(
+      p => new THREE.Vector3(p.x, p.y, p.z)
+    );
+    
+    // Model marker positions - compute CURRENT world positions from stored LOCAL positions
+    // The local positions are relative to wall-container, so we transform through current wall transform
+    const modelVectors = this.modelMarkerPositions.map((p: any) => {
+      const localPos = new THREE.Vector3(p.x, p.y, p.z);
+      const worldPos = (this.wallContainer as any).object3D.localToWorld(localPos.clone());
+      return worldPos;
+    });
+    
+    console.log('[VrCalibrationPage] Quick realignment:');
+    console.log('  Real positions:', realVectors.map((v: any) => `(${v.x.toFixed(3)}, ${v.y.toFixed(3)}, ${v.z.toFixed(3)})`));
+    console.log('  Model positions:', modelVectors.map((v: any) => `(${v.x.toFixed(3)}, ${v.y.toFixed(3)}, ${v.z.toFixed(3)})`));
+    
+    // Run alignment (instant, no animation)
+    triangleAlign.align(realVectors, modelVectors);
   }
 
   /**
