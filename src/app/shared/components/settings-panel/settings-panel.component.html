@@ -1,0 +1,30 @@
+<div class="settings-panel">
+  <h3>VR Environment Settings</h3>
+
+  <div class="setting-row">
+    <label for="skybox-select">Skybox</label>
+    <select 
+      id="skybox-select"
+      data-testid="skybox-dropdown"
+      [value]="settingsStore.selectedSkyboxPath()"
+      (change)="onSkyboxChange($event)">
+      @for (option of settingsStore.skyboxOptions; track option.key) {
+        <option 
+          [value]="option.path"
+          data-testid="skybox-option">
+          {{ option.name }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <div class="setting-row">
+    <label for="occlusion-toggle">View real wall through skybox</label>
+    <input 
+      type="checkbox"
+      id="occlusion-toggle"
+      data-testid="occlusion-toggle"
+      [checked]="settingsStore.occludeSkybox()"
+      (change)="onOcclusionChange($event)" />
+  </div>
+</div>
