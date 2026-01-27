@@ -4,11 +4,12 @@ import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
+import { EditorToolbarComponent } from '../../../shared/components/editor-toolbar/editor-toolbar.component';
 
 @Component({
   selector: 'app-wall-viewer',
   standalone: true,
-  imports: [BaseSceneComponent, RouteListComponent],
+  imports: [BaseSceneComponent, RouteListComponent, EditorToolbarComponent],
   templateUrl: './wall-viewer.html',
   styleUrl: './wall-viewer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

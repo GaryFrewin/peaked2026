@@ -1,0 +1,235 @@
+@use 'sass:color';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VARIABLES - Rugged climbing aesthetic
+// ═══════════════════════════════════════════════════════════════════════════
+
+$toolbar-bg: rgba(20, 22, 26, 0.92);
+$toolbar-border: rgba(255, 255, 255, 0.08);
+$tool-size: 44px;
+$tool-gap: 2px;
+$border-radius: 8px;
+$accent-color: #ff6b35;
+$hover-bg: rgba(255, 255, 255, 0.08);
+$active-bg: rgba(255, 107, 53, 0.15);
+$transition: 150ms ease-out;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLBAR CONTAINER
+// ═══════════════════════════════════════════════════════════════════════════
+
+.editor-toolbar {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  pointer-events: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: $tool-gap;
+  padding: 6px;
+
+  background: $toolbar-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $toolbar-border;
+  border-radius: $border-radius;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+
+  animation: toolbar-enter 0.25s ease-out forwards;
+}
+
+@keyframes toolbar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOL WRAPPER
+// ═══════════════════════════════════════════════════════════════════════════
+
+.tool-wrapper {
+  position: relative;
+  animation: tool-enter 0.2s ease-out backwards;
+}
+
+@keyframes tool-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOL BUTTON
+// ═══════════════════════════════════════════════════════════════════════════
+
+.tool-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: $tool-size;
+  height: $tool-size;
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+  border: none;
+  border-radius: $border-radius - 2px;
+  cursor: pointer;
+
+  transition: background-color $transition;
+
+  &:hover {
+    background: $hover-bg;
+  }
+
+  &.active {
+    background: $active-bg;
+
+    .active-indicator {
+      opacity: 1;
+    }
+
+    .tool-icon {
+      color: $accent-color;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOL ICON
+// ═══════════════════════════════════════════════════════════════════════════
+
+.tool-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color $transition;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACTIVE INDICATOR
+// ═══════════════════════════════════════════════════════════════════════════
+
+.active-indicator {
+  position: absolute;
+  right: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+
+  background: $accent-color;
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity $transition;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP POPUP
+// ═══════════════════════════════════════════════════════════════════════════
+
+.tool-tooltip {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+
+  background: $toolbar-bg;
+  backdrop-filter: blur(12px);
+  border: 1px solid $toolbar-border;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  white-space: nowrap;
+  pointer-events: none;
+
+  animation: tooltip-enter 0.1s ease-out;
+}
+
+@keyframes tooltip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.tooltip-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.tooltip-shortcut {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DIVIDER
+// ═══════════════════════════════════════════════════════════════════════════
+
+.divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ═══════════════════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .editor-toolbar {
+    right: 8px;
+    padding: 4px;
+  }
+
+  .tool-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tool-icon {
+    font-size: 16px;
+  }
+}

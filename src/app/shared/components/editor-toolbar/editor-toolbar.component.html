@@ -1,0 +1,33 @@
+<nav class="editor-toolbar" role="toolbar" aria-label="Editor tools">
+  @for (tool of tools; track tool.id; let i = $index) {
+    <div class="tool-wrapper" [style.animation-delay]="getAnimationDelay(i)">
+      <button
+        class="tool-button"
+        [class.active]="isActive(tool.id)"
+        [class.disabled]="tool.disabled"
+        [attr.aria-pressed]="isActive(tool.id)"
+        [attr.aria-label]="tool.label"
+        (mouseenter)="onToolHover(tool.id)"
+        (mouseleave)="onToolHover(null)"
+        (click)="onToolClick(tool)"
+      >
+        <span class="tool-icon">{{ tool.icon }}</span>
+        <span class="active-indicator"></span>
+      </button>
+
+      <!-- Tooltip popup -->
+      @if (isHovered(tool.id)) {
+        <div class="tool-tooltip">
+          <span class="tooltip-label">{{ tool.label }}</span>
+          @if (tool.shortcut) {
+            <span class="tooltip-shortcut">{{ tool.shortcut }}</span>
+          }
+        </div>
+      }
+
+      @if (tool.dividerAfter) {
+        <div class="divider"></div>
+      }
+    </div>
+  }
+</nav>
