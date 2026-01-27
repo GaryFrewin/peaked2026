@@ -1,0 +1,164 @@
+<!-- VR Calibration Page Template -->
+<!-- Phase 1: AR entry overlay + Welcome panel with BEGIN button -->
+
+<!-- Desktop/Browser Overlay - Click to enter AR -->
+<div class="ar-overlay">
+  <div class="ar-overlay__content">
+    <h1>Wall Calibration</h1>
+    <p>Put on your headset and click below to begin</p>
+    <button class="ar-enter-btn" id="ar-enter-btn">
+      ENTER AR
+    </button>
+  </div>
+</div>
+
+<!-- A-Frame Scene -->
+<a-scene
+  #scene
+  xr-mode-ui="XRMode: ar; enterARButton: #ar-enter-btn"
+  webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking, anchors;"
+  renderer="colorManagement: true;"
+  background="color: #0d1117"
+>
+  <!-- Ambient lighting -->
+  <a-entity light="type: ambient; color: #ffffff; intensity: 0.6"></a-entity>
+  <a-entity light="type: directional; color: #ffffff; intensity: 0.8" position="0 4 2"></a-entity>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- WELCOME PANEL - Big screen in front of user             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <a-entity id="welcome-panel" position="0 1.6 -2">
+    
+    <!-- Panel Background -->
+    <a-plane 
+      width="1.6" 
+      height="1.0" 
+      color="#1a1a2e"
+      material="opacity: 0.95; transparent: true"
+      class="intersectable">
+    </a-plane>
+    
+    <!-- Accent line at top -->
+    <a-plane
+      position="0 0.47 0.001"
+      width="1.6"
+      height="0.01"
+      color="#4caf50">
+    </a-plane>
+    
+    <!-- Header -->
+    <a-text
+      value="WALL CALIBRATION"
+      position="0 0.35 0.01"
+      align="center"
+      color="#ffffff"
+      width="1.4"
+      font="mozillavr">
+    </a-text>
+    
+    <!-- Subtitle -->
+    <a-text
+      value="Align your virtual wall with reality"
+      position="0 0.22 0.01"
+      align="center"
+      color="#8b949e"
+      width="1.2">
+    </a-text>
+    
+    <!-- Divider line -->
+    <a-plane
+      position="0 0.12 0.001"
+      width="1.2"
+      height="0.002"
+      color="#30363d">
+    </a-plane>
+    
+    <!-- Instructions -->
+    <a-text
+      value="This wizard will guide you through\ncalibrating your climbing wall in 5 steps:"
+      position="0 0.02 0.01"
+      align="center"
+      color="#c9d1d9"
+      width="1.1"
+      baseline="top">
+    </a-text>
+    
+    <!-- Step list -->
+    <a-text
+      value="1. Place markers on your real wall\n2. Match markers on 3D model\n3. Auto-align\n4. Fine-tune position\n5. Lock & save"
+      position="-0.5 -0.08 0.01"
+      align="left"
+      color="#8b949e"
+      width="0.9"
+      baseline="top"
+      line-height="60">
+    </a-text>
+    
+    <!-- Start Button -->
+    <a-entity 
+      id="start-button" 
+      position="0 -0.42 0.01" 
+      class="intersectable"
+      vr-button
+      (vr-button-click)="onBeginClick()">
+      <!-- Button background -->
+      <a-plane
+        id="start-button-bg"
+        width="0.4"
+        height="0.1"
+        color="#238636"
+        class="intersectable clickable">
+      </a-plane>
+      <!-- Button text -->
+      <a-text
+        value="BEGIN"
+        position="0 0.01 0.001"
+        align="center"
+        color="#ffffff"
+        width="0.8">
+      </a-text>
+      <!-- Button hint -->
+      <a-text
+        value="(point & pull trigger)"
+        position="0 -0.06 0.001"
+        align="center"
+        color="#8b949e"
+        width="0.6">
+      </a-text>
+    </a-entity>
+    
+    <!-- Step indicator at bottom -->
+    <a-entity position="0 -0.52 0.01">
+      <a-text
+        value="Step 0 of 5 · Welcome"
+        position="0 0 0"
+        align="center"
+        color="#484f58"
+        width="0.8">
+      </a-text>
+    </a-entity>
+    
+  </a-entity>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Camera Rig with Controllers                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <a-entity id="cameraRig">
+    <a-camera id="player"></a-camera>
+    
+    <!-- Left Controller -->
+    <a-entity 
+      id="leftController" 
+      laser-controls="hand: left" 
+      raycaster="objects: .clickable; showLine: true">
+    </a-entity>
+    
+    <!-- Right Controller -->
+    <a-entity 
+      id="rightController" 
+      laser-controls="hand: right" 
+      raycaster="objects: .clickable, .intersectable; showLine: true">
+    </a-entity>
+  </a-entity>
+
+</a-scene>

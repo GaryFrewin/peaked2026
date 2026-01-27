@@ -41,6 +41,10 @@ export class HomePageComponent {
     this.router.navigate(['/vr/viewer']);
   }
 
+  goToCalibration(): void {
+    this.router.navigate(['/vr/calibration']);
+  }
+
   goToDesktopMode(): void {
     this.router.navigate(['/desktop/viewer']);
   }

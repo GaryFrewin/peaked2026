@@ -63,6 +63,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'vr/calibration',
+    loadComponent: () =>
+      import('./vr/pages/vr-calibration-page/vr-calibration-page').then(
+        (m) => m.VrCalibrationPageComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'distance-logger',
     loadComponent: () =>
       import('./desktop/pages/distance-logger/distance-logger.component').then(
