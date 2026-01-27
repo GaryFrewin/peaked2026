@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { WallApi, Wall, WallVersion } from '../data-access/wall.api';
+import { WallApi } from '../data-access/wall.api';
+import { Wall, WallVersion } from '../data-contracts/wall.model';
 
 /**
  * WALL STORE

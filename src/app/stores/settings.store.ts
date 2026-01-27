@@ -21,20 +21,21 @@ export class SettingsStore {
   // Default to Above Clouds skybox
   private readonly defaultSkybox = environment.aboveClouds ?? '';
 
-  // Selected skybox path - defaults to Above Clouds
-  private readonly _selectedSkyboxPath = signal<string>(this.defaultSkybox);
-  readonly selectedSkyboxPath = this._selectedSkyboxPath.asReadonly();
+  // ========== SIGNALS (State) ==========
 
-  // Occlude skybox - when true, real wall is visible through skybox
-  private readonly _occludeSkybox = signal<boolean>(true);
-  readonly occludeSkybox = this._occludeSkybox.asReadonly();
+  /** Selected skybox path - defaults to Above Clouds */
+  readonly selectedSkyboxPath = signal<string>(this.defaultSkybox);
 
-  // Wall opacity - 0 = fully transparent (default for occlusion to work), 1 = fully opaque
-  private readonly _wallOpacity = signal<number>(0);
-  readonly wallOpacity = this._wallOpacity.asReadonly();
+  /** Occlude skybox - when true, real wall is visible through skybox */
+  readonly occludeSkybox = signal<boolean>(true);
+
+  /** Wall opacity - 0 = fully transparent (default for occlusion to work), 1 = fully opaque */
+  readonly wallOpacity = signal<number>(0);
+
+  // ========== ACTIONS ==========
 
   setSkybox(path: string): void {
-    this._selectedSkyboxPath.set(path);
+    this.selectedSkyboxPath.set(path);
   }
 
   setRandomSkybox(): void {
@@ -42,15 +43,15 @@ export class SettingsStore {
     if (nonEmptyOptions.length === 0) return;
     
     const randomIndex = Math.floor(Math.random() * nonEmptyOptions.length);
-    this._selectedSkyboxPath.set(nonEmptyOptions[randomIndex].path);
+    this.selectedSkyboxPath.set(nonEmptyOptions[randomIndex].path);
   }
 
   setOccludeSkybox(occlude: boolean): void {
-    this._occludeSkybox.set(occlude);
+    this.occludeSkybox.set(occlude);
   }
 
   setWallOpacity(opacity: number): void {
     // Clamp between 0 and 1
-    this._wallOpacity.set(Math.max(0, Math.min(1, opacity)));
+    this.wallOpacity.set(Math.max(0, Math.min(1, opacity)));
   }
 }

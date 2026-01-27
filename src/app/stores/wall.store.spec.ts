@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError, Subject } from 'rxjs';
 import { WallStore } from './wall.store';
-import { WallApi, Wall, WallsResponse } from '../data-access/wall.api';
+import { WallApi } from '../data-access/wall.api';
+import { Wall, WallsResponse } from '../data-contracts/wall.model';
 
 describe('WallStore', () => {
   let store: WallStore;

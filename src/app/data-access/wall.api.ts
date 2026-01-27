@@ -2,30 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { WallsResponse } from '../data-contracts/wall.model';
 
-export interface WallVersion {
-  id: number;
-  wall_id: number;
-  name: string;
-  model_path: string | null;
-  date_created: string;
-  date_modified: string;
-}
-
-export interface Wall {
-  id: number;
-  name: string;
-  created_by: number;
-  date_created: string;
-  date_modified: string;
-  wall_versions: WallVersion[];
-}
-
-export interface WallsResponse {
-  success: boolean;
-  message: string;
-  data: Wall[];
-}
+// Re-export models for backward compatibility
+export type { Wall, WallVersion, WallsResponse } from '../data-contracts/wall.model';
 
 /**
  * WALL API SERVICE
