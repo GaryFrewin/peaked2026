@@ -11,13 +11,14 @@
 .vr-route-list {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   background: var(--pk-surface-ground, #1a1a2e);
   color: var(--pk-text-primary, #fff);
   padding: var(--pk-spacing-md, 1rem);
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: 8px;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // HEADER

@@ -16,11 +16,12 @@ describe('SettingsPanelComponent', () => {
 
   beforeEach(async () => {
     mockSettingsStore = jasmine.createSpyObj('SettingsStore', 
-      ['setSkybox', 'setOccludeSkybox'],
+      ['setSkybox', 'setOccludeSkybox', 'setWallOpacity'],
       {
         skyboxOptions: mockSkyboxOptions,
         selectedSkyboxPath: signal('assets/skyboxes/above_clouds.glb'),
         occludeSkybox: signal(true),
+        wallOpacity: signal(0),
       }
     );
 

@@ -27,4 +27,17 @@
       [checked]="settingsStore.occludeSkybox()"
       (change)="onOcclusionChange($event)" />
   </div>
+
+  <div class="setting-row setting-row--slider">
+    <label for="wall-opacity">Wall Transparency: {{ settingsStore.wallOpacity() | number:'1.2-2' }}</label>
+    <input 
+      type="range"
+      id="wall-opacity"
+      data-testid="wall-opacity-slider"
+      min="0"
+      max="1"
+      step="0.01"
+      [value]="settingsStore.wallOpacity()"
+      (input)="onWallOpacityChange($event)" />
+  </div>
 </div>

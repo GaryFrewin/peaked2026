@@ -19,12 +19,11 @@
     [attr.occlude-skybox]="'enabled: ' + settingsStore.occludeSkybox() + '; wallSelector: #wall-container'"
   ></a-entity>
 
-  <!-- Fallback sky color when no skybox selected -->
-  <a-sky slot="environment" color="#1a1a2e"></a-sky>
-
   <!-- VR Route Selection Overlay - Full screen 2D UI -->
   <div slot="overlay" class="vr-overlay">
-    <app-vr-route-list />
-    <app-settings-panel class="settings-panel" />
+    <div class="vr-layout">
+      <app-settings-panel class="vr-settings" />
+      <app-vr-route-list class="vr-routes" />
+    </div>
   </div>
 </app-base-scene>

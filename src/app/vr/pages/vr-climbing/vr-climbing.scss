@@ -10,9 +10,20 @@
   inset: 0;
   z-index: 100;
 
-  .settings-panel {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+  .vr-layout {
+    display: flex;
+    height: 100%;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .vr-settings {
+    flex-shrink: 0;
+    width: 280px;
+  }
+
+  .vr-routes {
+    flex: 1;
+    overflow: hidden;
   }
 }

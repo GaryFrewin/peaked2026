@@ -32,11 +32,12 @@ if (typeof AFRAME !== 'undefined') {
     },
 
     updateSkybox: function (path: string) {
-      if (path) {
+      if (path && path.trim() !== '') {
         console.log('[dynamic-skybox] Loading skybox:', path);
-        this.el.setAttribute('gltf-model', path);
+        // GLTF models need url() wrapper for A-Frame to load them
+        this.el.setAttribute('gltf-model', `url(${path})`);
       } else {
-        console.log('[dynamic-skybox] Removing skybox');
+        console.log('[dynamic-skybox] Removing skybox (no path)');
         this.el.removeAttribute('gltf-model');
       }
     },

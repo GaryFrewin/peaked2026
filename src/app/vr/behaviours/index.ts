@@ -7,5 +7,6 @@
 
 import './dynamic-skybox';
 import './occlude-skybox';
+import './wall-opacity';
 
 console.log('[behaviours] A-Frame behaviours registered');

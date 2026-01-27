@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
+import { SettingsStore } from '../../../stores/settings.store';
 import { Route, RouteHold } from '../../../data-contracts/route.model';
 
 /**
@@ -57,6 +58,7 @@ export class BaseSceneComponent implements AfterViewInit {
   @ViewChild('scene', { static: false }) sceneElement!: ElementRef<HTMLElement>;
 
   private readonly routeStore = inject(RouteStore);
+  protected readonly settingsStore = inject(SettingsStore);
 
   // Inputs
   readonly wallModelUrl = input<string>('');
