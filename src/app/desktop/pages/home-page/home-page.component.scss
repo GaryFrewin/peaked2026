@@ -1,6 +1,11 @@
 /*
- * Home Page - Component-specific overrides only
- * Base styles come from shared _components.scss
+ * Home Page - Layout only, no PrimeNG overrides!
+ * All PrimeNG styling lives in _primeng-overrides.scss
  */
 
-/* No component-specific overrides needed yet */
+.btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}

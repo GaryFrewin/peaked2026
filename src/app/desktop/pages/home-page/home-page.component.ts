@@ -5,6 +5,8 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { TabsModule } from 'primeng/tabs';
+import { ButtonModule } from 'primeng/button';
 
 interface PlaygroundItem {
   label: string;
@@ -18,11 +20,12 @@ interface PlaygroundItem {
   styleUrl: './home-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
+  imports: [TabsModule, ButtonModule],
 })
 export class HomePageComponent {
   private readonly router = inject(Router);
 
-  protected readonly activeTab = signal<'modes' | 'playgrounds'>('modes');
+  protected readonly activeTab = signal<string>('modes');
 
   protected readonly playgrounds: PlaygroundItem[] = [
     { label: 'Basic Scene', route: 'basic', description: 'Simple A-Frame test' },
@@ -30,7 +33,7 @@ export class HomePageComponent {
     { label: 'Hold Loader', route: 'hold-loader', description: 'Climbing holds' },
   ];
 
-  setActiveTab(tab: 'modes' | 'playgrounds'): void {
+  setActiveTab(tab: string): void {
     this.activeTab.set(tab);
   }
 
