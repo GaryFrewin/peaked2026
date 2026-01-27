@@ -1,13 +1,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EditorToolbarComponent, ToolItem } from './editor-toolbar.component';
+import { EditorService } from '../../editor/editor.service';
+import { ViewTool } from '../../editor/tools/view.tool';
+import { EditHoldsTool } from '../../editor/tools/edit-holds.tool';
+import { signal } from '@angular/core';
 
 describe('EditorToolbarComponent', () => {
   let component: EditorToolbarComponent;
   let fixture: ComponentFixture<EditorToolbarComponent>;
+  let mockEditorService: jasmine.SpyObj<EditorService>;
 
   beforeEach(async () => {
+    mockEditorService = jasmine.createSpyObj('EditorService', ['setTool', 'registerTool'], {
+      activeToolId: signal('view'),
+    });
+
+    // Mock tools
+    const mockViewTool = { id: 'view', label: 'View Mode', icon: '👁️' };
+    const mockEditHoldsTool = { id: 'editHolds', label: 'Edit Holds', icon: '📍' };
+
     await TestBed.configureTestingModule({
       imports: [EditorToolbarComponent],
+      providers: [
+        { provide: EditorService, useValue: mockEditorService },
+        { provide: ViewTool, useValue: mockViewTool },
+        { provide: EditHoldsTool, useValue: mockEditHoldsTool },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EditorToolbarComponent);
@@ -23,8 +41,18 @@ describe('EditorToolbarComponent', () => {
     expect(component.tools.length).toBeGreaterThan(0);
   });
 
-  it('should initialize with view mode active', () => {
+  it('should get active tool from EditorService', () => {
     expect(component.activeTool()).toBe('view');
+  });
+
+  describe('initialization', () => {
+    it('should register tools with EditorService on init', () => {
+      expect(mockEditorService.registerTool).toHaveBeenCalledTimes(2);
+    });
+
+    it('should set view tool as default on init', () => {
+      expect(mockEditorService.setTool).toHaveBeenCalledWith('view');
+    });
   });
 
   describe('hover interactions', () => {
@@ -46,10 +74,13 @@ describe('EditorToolbarComponent', () => {
   });
 
   describe('click interactions', () => {
-    it('should set active tool on click', () => {
+    it('should call editorService.setTool on click', () => {
+      // Reset the spy since ngOnInit already called setTool('view')
+      mockEditorService.setTool.calls.reset();
+      
       const tool: ToolItem = { id: 'editHolds', icon: '📍', label: 'Edit Holds' };
       component.onToolClick(tool);
-      expect(component.activeTool()).toBe('editHolds');
+      expect(mockEditorService.setTool).toHaveBeenCalledWith('editHolds');
     });
 
     it('should emit toolSelected on click', () => {
@@ -61,21 +92,32 @@ describe('EditorToolbarComponent', () => {
       expect(emitSpy).toHaveBeenCalledWith('createRoute');
     });
 
-    it('should not emit for disabled tools', () => {
+    it('should not call editorService for disabled tools', () => {
+      // Reset the spy since ngOnInit already called setTool('view')
+      mockEditorService.setTool.calls.reset();
+      
       const emitSpy = spyOn(component.toolSelected, 'emit');
       const tool: ToolItem = { id: 'disabled', icon: '🚫', label: 'Disabled', disabled: true };
 
       component.onToolClick(tool);
 
+      expect(mockEditorService.setTool).not.toHaveBeenCalled();
       expect(emitSpy).not.toHaveBeenCalled();
-      expect(component.activeTool()).toBe('view'); // unchanged
     });
   });
 
   describe('isActive', () => {
-    it('should return true for active tool', () => {
+    it('should return true for active tool from service', () => {
       expect(component.isActive('view')).toBeTrue();
       expect(component.isActive('editHolds')).toBeFalse();
+    });
+
+    it('should reflect service activeToolId changes', () => {
+      // Simulate service changing active tool
+      (mockEditorService.activeToolId as any).set('editHolds');
+      
+      expect(component.isActive('editHolds')).toBeTrue();
+      expect(component.isActive('view')).toBeFalse();
     });
   });
 
