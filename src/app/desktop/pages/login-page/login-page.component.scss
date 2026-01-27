@@ -1,0 +1,30 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-image: url('/assets/images/landing.jpg');
+  background-size: cover;
+}
+
+.login-box {
+  width: 300px;
+  padding: 20px;
+  background: rgba(33, 33, 33, 0.8);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo img {
+  max-width: 100%;
+}
+
+.error-message {
+  color: #f44336;
+}

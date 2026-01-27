@@ -1,0 +1,56 @@
+<div class="login-container">
+  <div class="card login-box">
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="logo my-3">
+        <img src="/assets/images/TextLogo.png" class="img-fluid" alt="Peaked Logo">
+      </div>
+      <p class="text-center">Please login</p>
+
+      <!-- Email Input -->
+      <div class="mb-3 full-width-input">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+          required
+          placeholder="Email">
+      </div>
+
+      <!-- Password Input -->
+      <div class="mb-3 full-width-input">
+        <label for="password" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          required
+          placeholder="Password">
+      </div>
+
+      <!-- Submit Button -->
+      @if (!isLoading()) {
+        <div class="d-grid gap-2 action-button mb-3">
+          <button class="btn btn-primary" type="submit" [disabled]="!loginForm.form.valid">Login</button>
+        </div>
+      } @else {
+        <div class="d-grid gap-2 action-button">
+          <button class="btn btn-primary disabled" type="button">
+            <span class="spinner-border spinner-border-sm text-light" role="status"></span>
+          </button>
+        </div>
+      }
+    </form>
+
+    <!-- Error Message -->
+    @if (errorMessage()) {
+      <div class="alert alert-warning" role="alert">{{ errorMessage() }}</div>
+    }
+  </div>
+</div>
