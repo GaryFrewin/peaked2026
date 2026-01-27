@@ -7,13 +7,43 @@
   pointer-events: none;
 }
 
-.overlay-ui {
+.overlay-header {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--pk-surface-overlay);
+  color: var(--pk-text-primary);
+  border-radius: var(--pk-radius-sm);
+  pointer-events: auto;
+}
+
+.overlay-sidebar {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  padding: 0.5rem 1rem;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border-radius: 4px;
+  bottom: 1rem;
+  width: 380px;
+  background: var(--pk-surface-overlay);
+  border-radius: var(--pk-radius-md);
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-title {
+  margin: 0;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pk-text-primary);
+  border-bottom: 1px solid var(--pk-border-subtle);
+}
+
+app-route-list {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }

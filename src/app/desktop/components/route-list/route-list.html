@@ -1,0 +1,86 @@
+<div class="route-list">
+  <!-- Search Input -->
+  <div class="route-list__search">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Search routes (e.g., 'slab' or 'v5')..."
+        [ngModel]="searchFilter()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </span>
+  </div>
+
+  <!-- Loading State -->
+  @if (showLoading()) {
+    <div class="route-list__state">
+      <p-progressSpinner ariaLabel="Loading routes" />
+    </div>
+  }
+
+  <!-- Empty State - No Routes -->
+  @if (showEmptyState()) {
+    <div class="route-list__state">
+      <i class="pi pi-inbox route-list__state-icon"></i>
+      <h4>No Routes Found</h4>
+      <p>You have not created any climbing routes yet.</p>
+    </div>
+  }
+
+  <!-- No Match State -->
+  @if (showNoMatchState()) {
+    <div class="route-list__state">
+      <i class="pi pi-search route-list__state-icon"></i>
+      <h4>No Matching Routes</h4>
+      <p>No routes match your search criteria.</p>
+    </div>
+  }
+
+  <!-- Route List -->
+  @if (showRouteList()) {
+    <!-- Selection Header -->
+    @if (selectionCount() > 0) {
+      <div class="route-list__selection-bar">
+        <span>{{ selectionCount() }} route(s) selected</span>
+        <p-button
+          label="Clear"
+          icon="pi pi-times"
+          [text]="true"
+          size="small"
+          (click)="onClearSelection()"
+        />
+      </div>
+    }
+
+    <!-- Routes -->
+    <div class="route-list__items">
+      @for (route of filteredRoutes(); track route.id) {
+        <div
+          class="route-list__item"
+          [class.route-list__item--selected]="isRouteSelected(route)"
+          [style.--route-color]="getRouteColor(route)"
+          (click)="onRouteClick(route)"
+        >
+          <div class="route-list__item-info">
+            <div class="route-list__item-name">{{ route.name }}</div>
+            @if (route.styles && route.styles.length > 0) {
+              <div class="route-list__item-styles">
+                @for (style of route.styles; track style.id ?? style.name; let last = $last) {
+                  <span>{{ style.name }}{{ last ? '' : ', ' }}</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="route-list__item-grades">
+            <span class="route-list__grade">V{{ route.forward_grade }}</span>
+            @if (route.reverse_grade !== undefined && route.reverse_grade !== route.forward_grade) {
+              <span class="route-list__grade route-list__grade--reverse">/ V{{ route.reverse_grade }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -17,13 +17,15 @@
       ></a-entity>
     }
 
-    <!-- Holds - rendered directly (A-Frame can't see inside Angular components) -->
-    @for (hold of holds(); track hold.id) {
+    <!-- Route Holds - colored spheres for selected routes -->
+    @for (routeHold of routeHoldsToRender(); track routeHold.holdId + '-' + routeHold.routeId) {
       <a-sphere
-        [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
+        class="route-hold"
+        [attr.position]="routeHold.position.x + ' ' + routeHold.position.y + ' ' + routeHold.position.z"
         radius="0.05"
-        color="#00ff00"
-        opacity="0.8">
+        [attr.color]="routeHold.color"
+        [attr.material]="'emissive: ' + routeHold.color + '; emissiveIntensity: 0.3'"
+        opacity="0.9">
       </a-sphere>
     }
 
