@@ -53,7 +53,7 @@ describe('HoldRendererComponent', () => {
     fixture.componentRef.setInput('holds', mockHolds);
     fixture.detectChanges();
 
-    const entities = fixture.nativeElement.querySelectorAll('a-entity');
+    const entities = fixture.nativeElement.querySelectorAll('a-sphere');
     expect(entities.length).toBe(2);
   });
 
@@ -61,7 +61,8 @@ describe('HoldRendererComponent', () => {
     fixture.componentRef.setInput('holds', mockHolds);
     fixture.detectChanges();
 
-    const firstEntity = fixture.nativeElement.querySelector('a-entity');
+    const firstEntity = fixture.nativeElement.querySelector('a-sphere');
+    // In unit tests without A-Frame, attributes are set via [attr.position] binding
     const position = firstEntity.getAttribute('position');
     
     expect(position).toBe('0 1 0');
@@ -71,17 +72,17 @@ describe('HoldRendererComponent', () => {
     fixture.componentRef.setInput('holds', []);
     fixture.detectChanges();
 
-    const entities = fixture.nativeElement.querySelectorAll('a-entity');
+    const entities = fixture.nativeElement.querySelectorAll('a-sphere');
     expect(entities.length).toBe(0);
   });
 
   it('should update when holds input changes', () => {
     fixture.componentRef.setInput('holds', mockHolds);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('a-entity').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('a-sphere').length).toBe(2);
 
     fixture.componentRef.setInput('holds', [mockHolds[0]]);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('a-entity').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('a-sphere').length).toBe(1);
   });
 });

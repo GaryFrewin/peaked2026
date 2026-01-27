@@ -3,6 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { WallViewerComponent } from './wall-viewer';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
+import { RouteStore } from '../../../stores/route.store';
 import { signal } from '@angular/core';
 
 describe('WallViewerComponent', () => {
@@ -26,11 +27,19 @@ describe('WallViewerComponent', () => {
       loadHolds: jasmine.createSpy('loadHolds'),
     };
 
+    const mockRouteStore = {
+      routes: signal([]),
+      selectedRoutes: signal([]),
+      isLoading: signal(false),
+      loadRoutes: jasmine.createSpy('loadRoutes'),
+    };
+
     await TestBed.configureTestingModule({
       imports: [WallViewerComponent],
       providers: [
         { provide: WallStore, useValue: mockWallStore },
         { provide: HoldStore, useValue: mockHoldStore },
+        { provide: RouteStore, useValue: mockRouteStore },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();

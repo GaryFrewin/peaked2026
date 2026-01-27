@@ -5,11 +5,13 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth-guard';
 import { of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 describe('AuthGuard', () => {
   let router: Router;
   let authService: AuthService;
   let httpMock: HttpTestingController;
+  const apiUrl = environment.apiUrl;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -46,7 +48,7 @@ describe('AuthGuard', () => {
         }
       });
 
-      const req = httpMock.expectOne('https://192.168.0.113:5000/auth/verify');
+      const req = httpMock.expectOne(`${apiUrl}/auth/verify`);
       req.flush({ success: true });
     });
   });
@@ -66,7 +68,7 @@ describe('AuthGuard', () => {
         }
       });
 
-      const req = httpMock.expectOne('https://192.168.0.113:5000/auth/verify');
+      const req = httpMock.expectOne(`${apiUrl}/auth/verify`);
       req.flush({ success: false });
     });
   });
@@ -101,7 +103,7 @@ describe('AuthGuard', () => {
         }
       });
 
-      const req = httpMock.expectOne('https://192.168.0.113:5000/auth/verify');
+      const req = httpMock.expectOne(`${apiUrl}/auth/verify`);
       req.flush({ error: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     });
   });
