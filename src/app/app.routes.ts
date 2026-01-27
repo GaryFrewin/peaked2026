@@ -3,8 +3,15 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'vr/basic',
+    redirectTo: 'home',
     pathMatch: 'full',
+  },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./desktop/pages/home-page/home-page.component').then(
+        (m) => m.HomePageComponent
+      ),
   },
   {
     path: 'login',

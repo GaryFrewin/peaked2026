@@ -1,0 +1,86 @@
+<div class="pk-page-backdrop">
+  <div class="pk-glass-panel pk-glass-panel--lg">
+    <img src="/assets/images/TextLogo.png" alt="Peaked" class="pk-logo" />
+
+    <nav class="pk-tabs">
+      <button
+        class="pk-tab"
+        [class.active]="activeTab() === 'modes'"
+        (click)="setActiveTab('modes')"
+        data-testid="modes-tab"
+      >
+        Climb
+      </button>
+      <button
+        class="pk-tab"
+        [class.active]="activeTab() === 'playgrounds'"
+        (click)="setActiveTab('playgrounds')"
+        data-testid="playgrounds-tab"
+      >
+        Dev
+      </button>
+    </nav>
+
+    <main>
+      @if (activeTab() === 'modes') {
+        <div class="pk-btn-stack">
+          <button
+            class="pk-btn"
+            (click)="goToVrMode()"
+            data-testid="vr-mode-btn"
+          >
+            <svg class="pk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="10" rx="2"/>
+              <circle cx="8" cy="12" r="2"/>
+              <circle cx="16" cy="12" r="2"/>
+            </svg>
+            VR Mode
+          </button>
+
+          <button
+            class="pk-btn"
+            (click)="goToDesktopMode()"
+            data-testid="desktop-mode-btn"
+          >
+            <svg class="pk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Desktop
+          </button>
+
+          <button
+            class="pk-btn"
+            (click)="goToDistanceLogger()"
+            data-testid="distance-logger-btn"
+          >
+            <svg class="pk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            Route Logger
+          </button>
+        </div>
+      }
+
+      @if (activeTab() === 'playgrounds') {
+        <div class="pk-btn-stack">
+          @for (pg of playgrounds; track pg.route) {
+            <button
+              class="pk-btn pk-btn--sm"
+              (click)="goToPlayground(pg.route)"
+              [attr.data-testid]="'playground-' + pg.route"
+            >
+              <svg class="pk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              {{ pg.label }}
+            </button>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</div>

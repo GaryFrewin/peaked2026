@@ -1,0 +1,278 @@
+/*
+ * Peaked Shared UI Components
+ * Reusable patterns across the application
+ */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE LAYOUTS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Full-bleed background page with landing image
+ * Usage: <div class="pk-page-backdrop">...</div>
+ */
+.pk-page-backdrop {
+  min-height: 100vh;
+  background-image: url('/assets/images/landing.jpg');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/**
+ * Centered content page without background image
+ */
+.pk-page-centered {
+  min-height: 100vh;
+  background: var(--pk-surface-page);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANELS & CARDS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Glass-style panel with dark semi-transparent background
+ * Usage: <div class="pk-glass-panel">...</div>
+ */
+.pk-glass-panel {
+  background: var(--pk-surface-overlay);
+  border-radius: var(--pk-radius-md);
+  padding: 2.5rem;
+  color: var(--pk-text-primary);
+
+  &--sm {
+    padding: 1.5rem;
+    max-width: 320px;
+  }
+
+  &--md {
+    padding: 2rem;
+    max-width: 400px;
+  }
+
+  &--lg {
+    padding: 2.5rem;
+    max-width: 500px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Base button reset
+ */
+.pk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--pk-border-default);
+  border-radius: var(--pk-radius-sm);
+  background: var(--pk-surface-hover);
+  color: var(--pk-text-primary);
+  font-family: var(--pk-font-family);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+  width: 100%;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--pk-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--pk-primary);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/**
+ * Primary filled button
+ */
+.pk-btn--primary {
+  background: var(--pk-primary);
+  border-color: var(--pk-primary);
+  color: white;
+
+  &:hover {
+    background: var(--pk-orange-600);
+    border-color: var(--pk-orange-600);
+  }
+}
+
+/**
+ * Compact button variant
+ */
+.pk-btn--sm {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  gap: 0.5rem;
+}
+
+/**
+ * Icon sizing within buttons
+ */
+.pk-btn .pk-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.pk-btn--sm .pk-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTON GROUPS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Vertical stack of buttons
+ */
+.pk-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Tab navigation
+ * Usage: <nav class="pk-tabs">
+ *          <button class="pk-tab active">Tab 1</button>
+ *          <button class="pk-tab">Tab 2</button>
+ *        </nav>
+ */
+.pk-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--pk-border-subtle);
+  padding-bottom: 1rem;
+}
+
+.pk-tab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--pk-radius-sm);
+  background: transparent;
+  color: var(--pk-text-muted);
+  font-family: var(--pk-font-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: var(--pk-surface-hover);
+    color: var(--pk-text-secondary);
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--pk-text-primary);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FORMS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Form label
+ */
+.pk-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--pk-text-secondary);
+}
+
+/**
+ * Text input
+ */
+.pk-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--pk-border-default);
+  border-radius: var(--pk-radius-sm);
+  background: var(--pk-surface-hover);
+  color: var(--pk-text-primary);
+  font-family: var(--pk-font-family);
+  font-size: 1rem;
+
+  &::placeholder {
+    color: var(--pk-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--pk-primary);
+  }
+}
+
+/**
+ * Form group spacing
+ */
+.pk-form-group {
+  margin-bottom: 1rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LOGO
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.pk-logo {
+  display: block;
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UTILITIES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.pk-text-center {
+  text-align: center;
+}
+
+.pk-text-muted {
+  color: var(--pk-text-muted);
+}
+
+.pk-text-error {
+  color: var(--pk-danger);
+}
+
+.pk-mb-0 { margin-bottom: 0; }
+.pk-mb-1 { margin-bottom: 0.5rem; }
+.pk-mb-2 { margin-bottom: 1rem; }
+.pk-mb-3 { margin-bottom: 1.5rem; }

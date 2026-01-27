@@ -1,0 +1,88 @@
+/*
+ * PrimeNG Theme Override for Peaked
+ * Integrates brand colors with PrimeNG components
+ */
+
+/* Button overrides for dark theme contexts */
+.pk-glass-panel,
+.pk-page-backdrop {
+  .p-button {
+    &.p-button-outlined {
+      border-color: var(--pk-border-default);
+      color: var(--pk-text-primary);
+
+      &:hover {
+        background: var(--pk-surface-hover);
+        border-color: var(--pk-border-strong);
+      }
+    }
+
+    &.p-button-text {
+      color: var(--pk-text-secondary);
+
+      &:hover {
+        background: var(--pk-surface-hover);
+        color: var(--pk-text-primary);
+      }
+    }
+  }
+
+  /* Input overrides */
+  .p-inputtext {
+    background: var(--pk-surface-hover);
+    border-color: var(--pk-border-default);
+    color: var(--pk-text-primary);
+
+    &::placeholder {
+      color: var(--pk-text-muted);
+    }
+
+    &:focus {
+      border-color: var(--pk-primary);
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+    }
+  }
+
+  /* Dialog overrides */
+  .p-dialog {
+    background: var(--pk-surface-overlay);
+    color: var(--pk-text-primary);
+
+    .p-dialog-header {
+      background: transparent;
+      color: var(--pk-text-primary);
+      border-bottom: 1px solid var(--pk-border-subtle);
+    }
+
+    .p-dialog-content {
+      background: transparent;
+      color: var(--pk-text-primary);
+    }
+
+    .p-dialog-footer {
+      background: transparent;
+      border-top: 1px solid var(--pk-border-subtle);
+    }
+  }
+}
+
+/* Toast styling */
+.p-toast {
+  .p-toast-message {
+    &.p-toast-message-success {
+      background: var(--pk-success);
+    }
+
+    &.p-toast-message-error {
+      background: var(--pk-danger);
+    }
+
+    &.p-toast-message-warn {
+      background: var(--pk-warning);
+    }
+
+    &.p-toast-message-info {
+      background: var(--pk-info);
+    }
+  }
+}

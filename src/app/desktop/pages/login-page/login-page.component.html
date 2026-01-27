@@ -1,56 +1,59 @@
-<div class="login-container">
-  <div class="card login-box">
+<div class="pk-page-backdrop">
+  <div class="pk-glass-panel pk-glass-panel--md">
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-      <div class="logo my-3">
-        <img src="/assets/images/TextLogo.png" class="img-fluid" alt="Peaked Logo">
-      </div>
-      <p class="text-center">Please login</p>
+      <img src="/assets/images/TextLogo.png" alt="Peaked" class="pk-logo" />
+      <p class="pk-text-center pk-text-muted pk-mb-3">Please login</p>
 
       <!-- Email Input -->
-      <div class="mb-3 full-width-input">
-        <label for="email" class="form-label">Email</label>
+      <div class="pk-form-group">
+        <label for="email" class="pk-label">Email</label>
         <input
           type="email"
-          class="form-control"
+          class="pk-input"
           id="email"
           [ngModel]="email()"
           (ngModelChange)="email.set($event)"
           name="email"
           required
-          placeholder="Email">
+          placeholder="Email"
+        />
       </div>
 
       <!-- Password Input -->
-      <div class="mb-3 full-width-input">
-        <label for="password" class="form-label">Password</label>
+      <div class="pk-form-group">
+        <label for="password" class="pk-label">Password</label>
         <input
           type="password"
-          class="form-control"
+          class="pk-input"
           id="password"
           [ngModel]="password()"
           (ngModelChange)="password.set($event)"
           name="password"
           required
-          placeholder="Password">
+          placeholder="Password"
+        />
       </div>
 
       <!-- Submit Button -->
       @if (!isLoading()) {
-        <div class="d-grid gap-2 action-button mb-3">
-          <button class="btn btn-primary" type="submit" [disabled]="!loginForm.form.valid">Login</button>
-        </div>
+        <button
+          class="pk-btn pk-btn--primary"
+          type="submit"
+          [disabled]="!loginForm.form.valid"
+        >
+          Login
+        </button>
       } @else {
-        <div class="d-grid gap-2 action-button">
-          <button class="btn btn-primary disabled" type="button">
-            <span class="spinner-border spinner-border-sm text-light" role="status"></span>
-          </button>
-        </div>
+        <button class="pk-btn pk-btn--primary" type="button" disabled>
+          <span class="spinner"></span>
+          Logging in...
+        </button>
       }
     </form>
 
     <!-- Error Message -->
     @if (errorMessage()) {
-      <div class="alert alert-warning" role="alert">{{ errorMessage() }}</div>
+      <p class="pk-text-error pk-mb-0">{{ errorMessage() }}</p>
     }
   </div>
 </div>

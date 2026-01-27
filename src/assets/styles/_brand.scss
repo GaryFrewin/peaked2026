@@ -1,0 +1,116 @@
+/*
+ * Peaked Brand Design System
+ * Core colors, fonts, and design tokens
+ */
+
+@use 'sass:color';
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BRAND COLORS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+// Primary - Orange/amber tones (climbing chalk, rock)
+$orange-500: #f97316;
+$orange-600: #ea580c;
+$orange-400: #fb923c;
+$orange-300: #fdba74;
+
+// Neutrals - Dark theme base
+$grey-900: #141414;
+$grey-800: #1f1f1f;
+$grey-700: #2a2a2a;
+$grey-600: #404040;
+$grey-500: #525252;
+$grey-400: #737373;
+$grey-300: #a3a3a3;
+$grey-200: #d4d4d4;
+$grey-100: #f5f5f5;
+
+// Semantic
+$success: #22c55e;
+$warning: #eab308;
+$danger: #ef4444;
+$info: #3b82f6;
+
+// Text
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-muted: rgba(255, 255, 255, 0.5);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ══════════════════════════════════════════════════════════════════════════ */
+
+$font-family-base: 'Segoe UI', system-ui, -apple-system, sans-serif;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SPACING & SIZING
+   ══════════════════════════════════════════════════════════════════════════ */
+
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  // Brand colors
+  --pk-orange-500: #{$orange-500};
+  --pk-orange-600: #{$orange-600};
+  --pk-orange-400: #{$orange-400};
+  --pk-orange-300: #{$orange-300};
+
+  // Neutrals
+  --pk-grey-900: #{$grey-900};
+  --pk-grey-800: #{$grey-800};
+  --pk-grey-700: #{$grey-700};
+  --pk-grey-600: #{$grey-600};
+  --pk-grey-500: #{$grey-500};
+  --pk-grey-400: #{$grey-400};
+  --pk-grey-300: #{$grey-300};
+  --pk-grey-200: #{$grey-200};
+  --pk-grey-100: #{$grey-100};
+
+  // Semantic
+  --pk-primary: #{$orange-500};
+  --pk-success: #{$success};
+  --pk-warning: #{$warning};
+  --pk-danger: #{$danger};
+  --pk-info: #{$info};
+
+  // Text
+  --pk-text-primary: #{$text-primary};
+  --pk-text-secondary: #{$text-secondary};
+  --pk-text-muted: #{$text-muted};
+
+  // Surfaces (dark theme)
+  --pk-surface-page: #{$grey-900};
+  --pk-surface-card: #{$grey-800};
+  --pk-surface-overlay: rgba(20, 20, 20, 0.85);
+  --pk-surface-hover: rgba(255, 255, 255, 0.05);
+
+  // Borders
+  --pk-border-subtle: rgba(255, 255, 255, 0.1);
+  --pk-border-default: rgba(255, 255, 255, 0.15);
+  --pk-border-strong: rgba(255, 255, 255, 0.25);
+
+  // Typography
+  --pk-font-family: #{$font-family-base};
+
+  // Spacing
+  --pk-radius-sm: #{$border-radius-sm};
+  --pk-radius-md: #{$border-radius-md};
+  --pk-radius-lg: #{$border-radius-lg};
+}

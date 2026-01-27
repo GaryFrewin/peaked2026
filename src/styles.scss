@@ -1,14 +1,39 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Peaked Global Styles
+ * Import order matters - brand first, then components, then overrides
+ */
 
-html, body {
+/* Peaked Design System */
+@use 'assets/styles/brand';
+@use 'assets/styles/components';
+@use 'assets/styles/primeng-overrides';
+
+/* PrimeNG Icons */
+@import 'primeicons/primeicons.css';
+
+/* Base Resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--pk-font-family);
+  background: var(--pk-surface-page);
+  color: var(--pk-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* A-Frame fullscreen fix */
 html.a-fullscreen .a-canvas {
   z-index: 0 !important;
 }
