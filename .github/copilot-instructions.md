@@ -130,7 +130,97 @@ Here is a link to the most recent Angular style guide https://angular.dev/style-
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
 
+---
 
+## A-Frame + Angular Integration
+
+This app uses A-Frame 1.7 for VR/3D rendering. There are critical patterns to follow.
+
+### CRITICAL: A-Frame Cannot See Inside Angular Components
+
+**A-Frame entities MUST be rendered directly in the template containing `<a-scene>`.**
+
+A-Frame builds its scene graph from the DOM. Angular components create their own DOM boundaries that A-Frame cannot traverse. If you wrap A-Frame entities in an Angular component, A-Frame won't find them.
+
+❌ **WRONG** - A-Frame won't see these entities:
+```html
+<!-- base-scene.html -->
+<a-scene>
+  <app-hold-renderer [holds]="holds()" />  <!-- A-Frame can't see inside this! -->
+</a-scene>
+```
+
+✅ **CORRECT** - Render entities directly:
+```html
+<!-- base-scene.html -->
+<a-scene>
+  @for (hold of holds(); track hold.id) {
+    <a-sphere
+      [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
+      radius="0.05"
+      color="#00ff00">
+    </a-sphere>
+  }
+</a-scene>
+```
+
+### A-Frame Attribute Binding
+
+Use `[attr.X]` for dynamic A-Frame attributes:
+
+```html
+<!-- Dynamic position -->
+<a-entity [attr.position]="x + ' ' + y + ' ' + z"></a-entity>
+
+<!-- Dynamic gltf-model with url() wrapper -->
+<a-entity [attr.gltf-model]="'url(' + modelUrl() + ')'"></a-entity>
+
+<!-- Static attributes work normally -->
+<a-sphere radius="0.05" color="#00ff00"></a-sphere>
+```
+
+### Required Schema for A-Frame Components
+
+Any component using A-Frame elements needs `CUSTOM_ELEMENTS_SCHEMA`:
+
+```typescript
+@Component({
+  selector: 'app-vr-scene',
+  standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],  // Required for <a-scene>, <a-entity>, etc.
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+```
+
+### Scene Ready Pattern
+
+A-Frame scenes load asynchronously. Use the `loaded` event:
+
+```typescript
+@ViewChild('scene', { static: false }) sceneElement!: ElementRef<HTMLElement>;
+
+ngAfterViewInit(): void {
+  const scene = this.sceneElement.nativeElement;
+  scene.addEventListener('loaded', () => {
+    // Scene is ready - safe to query entities, start game logic, etc.
+  }, { once: true });
+}
+```
+
+### Asset Loading
+
+For GLTF/GLB models, use direct URL loading (not the asset system):
+
+```html
+<!-- Direct URL loading - works reliably with Angular's change detection -->
+<a-entity [attr.gltf-model]="'url(' + modelUrl() + ')'"></a-entity>
+```
+
+### 3D Assets Are Not Tracked in Git
+
+GLTF, GLB, and other 3D assets are served from remote URLs in production (e.g., `https://garyfrewin.co.uk/sites/ClimbingData/3Dmodels/`). For local development, copy assets to `public/assets/` but they are gitignored.
+
+---
 
 ## COMMITING
 ALwats write clear commit messages that explain the "why" behind the change, not just the "what".

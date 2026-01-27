@@ -39,8 +39,10 @@ export class WallViewerComponent implements OnInit {
         this.wallStore.selectWall(walls[0].id);
         
         if (walls[0].wall_versions.length > 0) {
-          const version = walls[0].wall_versions[0];
-          console.log('Auto-selecting version:', version.id, 'model_path:', version.model_path);
+          // Select the latest version (last in array)
+          const versions = walls[0].wall_versions;
+          const version = versions[versions.length - 1];
+          console.log('Auto-selecting latest version:', version.id, 'model_path:', version.model_path);
           this.wallStore.selectVersion(version.id);
           this.holdStore.loadHolds(String(walls[0].id), String(version.id));
         }

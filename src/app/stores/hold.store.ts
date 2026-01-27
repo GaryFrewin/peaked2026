@@ -48,17 +48,23 @@ export class HoldStore {
    */
   loadHolds(wallId: string, versionId: string): void {
     // Guard: Skip if already loading
-    if (this.isLoading()) return;
+    if (this.isLoading()) {
+      console.log('HoldStore: Already loading, skipping');
+      return;
+    }
 
+    console.log('HoldStore: Loading holds for wall', wallId, 'version', versionId);
     this.isLoading.set(true);
     this.error.set(null);
 
     this.api.loadHolds(wallId, versionId).subscribe({
       next: (response) => {
+        console.log('HoldStore: Received holds:', response.data.length, response.data);
         this.holds.set(response.data);
         this.isLoading.set(false);
       },
       error: (err) => {
+        console.error('HoldStore: Error loading holds:', err);
         this.error.set(`Failed to load holds: ${err.statusText || err.message}`);
         this.isLoading.set(false);
       }

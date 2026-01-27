@@ -1,4 +1,7 @@
 <a-scene #scene>
+  <!-- Dark sky for desktop mode -->
+  <a-sky color="#222"></a-sky>
+
   <!-- Wall Environment with calibrated anchor -->
   <a-entity 
     id="wall-environment" 
@@ -14,10 +17,15 @@
       ></a-entity>
     }
 
-    <!-- Holds Container -->
-    <a-entity id="hold-container" position="0 0 0">
-      <app-hold-renderer [holds]="holds()" />
-    </a-entity>
+    <!-- Holds - rendered directly (A-Frame can't see inside Angular components) -->
+    @for (hold of holds(); track hold.id) {
+      <a-sphere
+        [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
+        radius="0.05"
+        color="#00ff00"
+        opacity="0.8">
+      </a-sphere>
+    }
 
     <!-- Extension point: context-specific entities -->
     <ng-content select="[slot=entities]" />

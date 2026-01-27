@@ -7,14 +7,12 @@ import {
   AfterViewInit,
   input,
   output,
-  signal
 } from '@angular/core';
-import { HoldRendererComponent } from '../hold-renderer/hold-renderer';
 import { Hold } from '../../../data-contracts/hold.model';
 
 @Component({
   selector: 'app-base-scene',
-  imports: [HoldRendererComponent],
+  imports: [],
   standalone: true,
   templateUrl: './base-scene.html',
   styleUrl: './base-scene.scss',

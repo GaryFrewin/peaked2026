@@ -1,7 +1,8 @@
 @for (hold of holds(); track hold.id) {
-  <a-entity
+  <a-sphere
     [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
-    geometry="primitive: sphere; radius: 0.05"
-    material="color: #00ff00; opacity: 0.8">
-  </a-entity>
+    radius="0.05"
+    color="#00ff00"
+    opacity="0.8">
+  </a-sphere>
 }
