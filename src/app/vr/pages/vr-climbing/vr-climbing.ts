@@ -3,7 +3,11 @@ import { BaseSceneComponent } from '../../../shared/components/base-scene/base-s
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
+import { SettingsStore } from '../../../stores/settings.store';
 import { VrRouteListComponent } from '../../components/vr-route-list/vr-route-list';
+
+// Register A-Frame behaviours
+import '../../behaviours';
 
 @Component({
   selector: 'app-vr-climbing',
@@ -18,6 +22,7 @@ export class VrClimbingComponent implements OnInit {
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
+  protected readonly settingsStore = inject(SettingsStore);
 
   private readonly sceneReady = signal(false);
 

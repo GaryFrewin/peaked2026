@@ -4,8 +4,23 @@
   [visible]="true"
   (sceneReady)="onSceneReady()"
 >
-  <!-- VR-specific: Skybox -->
-  <a-sky slot="environment" color="#87CEEB"></a-sky>
+  <!-- VR-specific: Skybox (GLTF model) -->
+  <a-entity 
+    slot="environment"
+    id="skybox" 
+    scale="2 2 2" 
+    position="0 0 0"
+    [attr.dynamic-skybox]="'path: ' + settingsStore.selectedSkyboxPath()"
+  ></a-entity>
+
+  <!-- Skybox Occlusion - makes real wall visible through skybox -->
+  <a-entity
+    slot="environment"
+    [attr.occlude-skybox]="'enabled: ' + settingsStore.occludeSkybox() + '; wallSelector: #wall-container'"
+  ></a-entity>
+
+  <!-- Fallback sky color when no skybox selected -->
+  <a-sky slot="environment" color="#1a1a2e"></a-sky>
 
   <!-- VR Route Selection Overlay - Full screen 2D UI -->
   <div slot="overlay" class="vr-overlay">

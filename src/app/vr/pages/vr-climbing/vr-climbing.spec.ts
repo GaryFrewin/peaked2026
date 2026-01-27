@@ -3,6 +3,8 @@ import { CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { VrClimbingComponent } from './vr-climbing';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
+import { RouteStore } from '../../../stores/route.store';
+import { SettingsStore } from '../../../stores/settings.store';
 
 describe('VrClimbingComponent', () => {
   let component: VrClimbingComponent;
@@ -25,11 +27,28 @@ describe('VrClimbingComponent', () => {
       loadHolds: jasmine.createSpy('loadHolds'),
     };
 
+    const mockRouteStore = {
+      routes: signal([]),
+      selectedRoutes: signal([]),
+      isLoading: signal(false),
+      loadRoutes: jasmine.createSpy('loadRoutes'),
+    };
+
+    const mockSettingsStore = {
+      skyboxOptions: [],
+      selectedSkyboxPath: signal(''),
+      occludeSkybox: signal(true),
+      setSkybox: jasmine.createSpy('setSkybox'),
+      setOccludeSkybox: jasmine.createSpy('setOccludeSkybox'),
+    };
+
     await TestBed.configureTestingModule({
       imports: [VrClimbingComponent],
       providers: [
         { provide: WallStore, useValue: mockWallStore },
         { provide: HoldStore, useValue: mockHoldStore },
+        { provide: RouteStore, useValue: mockRouteStore },
+        { provide: SettingsStore, useValue: mockSettingsStore },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
