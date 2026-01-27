@@ -56,6 +56,13 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200,
+            "ssl": true,
+            "sslCert": "D:/deployed_projects/localssl/main-certs.crt",
+            "sslKey": "D:/deployed_projects/localssl/main-certs.key"
+          },
           "configurations": {
             "production": {
               "buildTarget": "peaked2026:build:production"
@@ -72,6 +79,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
