@@ -27,12 +27,14 @@ import { registerVrButtonComponent } from '../../behaviours/vr-button';
 import { registerMarkerPlacerComponent } from '../../behaviours/marker-placer';
 import { registerWallManipulatorComponent } from '../../behaviours/wall-manipulator';
 import { registerSurfaceCursorComponent } from '../../behaviours/surface-cursor';
+import { registerTriangleAlignComponent } from '../../behaviours/triangle-align';
 
 // Register on module load
 registerVrButtonComponent();
 registerMarkerPlacerComponent();
 registerWallManipulatorComponent();
 registerSurfaceCursorComponent();
+registerTriangleAlignComponent();
 
 @Component({
   selector: 'app-vr-calibration-page',
@@ -114,6 +116,7 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private rightController: HTMLElement | null = null;
+  private wallContainer: HTMLElement | null = null;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COMPUTED (panel visibility)
@@ -157,6 +160,9 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
 
     // Get controller reference
     this.rightController = document.getElementById('rightController');
+    
+    // Get wall-container reference for alignment
+    this.wallContainer = document.getElementById('wall-container');
 
     // Listen for marker-placed events (Step 1 - real markers)
     if (this.rightController) {
@@ -167,6 +173,13 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       // Listen for surface-point-selected events (Step 2 - model markers)
       this.rightController.addEventListener('surface-point-selected', ((event: CustomEvent) => {
         this.onSurfacePointSelected(event);
+      }) as EventListener);
+    }
+    
+    // Listen for alignment-complete event (Step 3)
+    if (this.wallContainer) {
+      this.wallContainer.addEventListener('alignment-complete', ((event: CustomEvent) => {
+        this.onAlignmentComplete(event);
       }) as EventListener);
     }
   }
@@ -292,14 +305,70 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       console.log('[VrCalibrationPage] Enabled surface-cursor for Step 2');
     }
 
-    // Disable surface-cursor when leaving step2
+    // Disable surface-cursor and trigger alignment when leaving step2
     if (this.currentPhase() === 'step2' && this.rightController) {
       this.rightController.setAttribute('surface-cursor', 'enabled: false');
       console.log('[VrCalibrationPage] Disabled surface-cursor');
+      
+      // Trigger alignment for Step 3
+      this.triggerAlignment();
     }
 
     this.store.setCanProceed(true);
     this.store.nextPhase();
+  }
+  
+  /**
+   * Trigger the triangle alignment algorithm.
+   * Converts stored marker positions to THREE.Vector3 and calls align().
+   */
+  private triggerAlignment(): void {
+    if (!this.wallContainer) {
+      console.error('[VrCalibrationPage] No wall-container found');
+      return;
+    }
+    
+    // Get the triangle-align component
+    const triangleAlign = (this.wallContainer as any).components?.['triangle-align'];
+    if (!triangleAlign) {
+      console.error('[VrCalibrationPage] triangle-align component not found on wall-container');
+      return;
+    }
+    
+    // Validate we have 3 markers in each set
+    if (this.realMarkerPositions.length !== 3 || this.modelMarkerPositions.length !== 3) {
+      console.error('[VrCalibrationPage] Need exactly 3 markers in each set',
+        'real:', this.realMarkerPositions.length,
+        'model:', this.modelMarkerPositions.length);
+      return;
+    }
+    
+    // Convert to THREE.Vector3
+    const THREE = (window as any).THREE;
+    const realPositions = this.realMarkerPositions.map(
+      p => new THREE.Vector3(p.x, p.y, p.z)
+    );
+    const modelPositions = this.modelMarkerPositions.map(
+      p => new THREE.Vector3(p.x, p.y, p.z)
+    );
+    
+    console.log('[VrCalibrationPage] Triggering alignment with:');
+    console.log('  Real positions:', this.realMarkerPositions);
+    console.log('  Model positions:', this.modelMarkerPositions);
+    
+    // Call align with animate=true for visual feedback
+    triangleAlign.data.animate = true;
+    triangleAlign.align(realPositions, modelPositions);
+  }
+  
+  /**
+   * Called when triangle-align emits alignment-complete event
+   */
+  private onAlignmentComplete(event: CustomEvent): void {
+    console.log('[VrCalibrationPage] Alignment complete:', event.detail);
+    
+    // Enable NEXT to proceed to Step 4 (final confirmation)
+    this.store.setCanProceed(true);
   }
 
   /**
