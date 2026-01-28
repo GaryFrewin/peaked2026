@@ -52,6 +52,8 @@ export class InteractionBus implements OnDestroy {
   private readonly _holdHovered$ = new Subject<number>();
   private readonly _holdUnhovered$ = new Subject<number>();
   private readonly _wallClicked$ = new Subject<Point3D>();
+  private readonly _holdDragStarted$ = new Subject<number>();
+  private readonly _holdDragEnded$ = new Subject<number>();
 
   // ═══════════════════════════════════════════════════════════════════════════
   // OBSERVABLES (public - anyone can subscribe)
@@ -68,6 +70,12 @@ export class InteractionBus implements OnDestroy {
 
   /** Emitted when wall surface is clicked. Payload: intersection point */
   readonly wallClicked$: Observable<Point3D> = this._wallClicked$.asObservable();
+
+  /** Emitted when a hold drag operation starts (500ms press-and-hold). Payload: holdId */
+  readonly holdDragStarted$: Observable<number> = this._holdDragStarted$.asObservable();
+
+  /** Emitted when a hold drag operation ends (mouseup after drag). Payload: holdId */
+  readonly holdDragEnded$: Observable<number> = this._holdDragEnded$.asObservable();
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONSTRUCTOR - Register on window for A-Frame access
@@ -90,6 +98,8 @@ export class InteractionBus implements OnDestroy {
     this._holdHovered$.complete();
     this._holdUnhovered$.complete();
     this._wallClicked$.complete();
+    this._holdDragStarted$.complete();
+    this._holdDragEnded$.complete();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -126,5 +136,21 @@ export class InteractionBus implements OnDestroy {
    */
   emitWallClicked(point: Point3D): void {
     this._wallClicked$.next(point);
+  }
+
+  /**
+   * Called when a hold drag operation starts (500ms press-and-hold timer completes)
+   * @param holdId - The ID of the hold being dragged
+   */
+  emitHoldDragStarted(holdId: number): void {
+    this._holdDragStarted$.next(holdId);
+  }
+
+  /**
+   * Called when a hold drag operation ends (mouseup after drag)
+   * @param holdId - The ID of the hold that was dragged
+   */
+  emitHoldDragEnded(holdId: number): void {
+    this._holdDragEnded$.next(holdId);
   }
 }

@@ -3,6 +3,7 @@ import { ModeStore, AppMode } from '../../../stores/mode.store';
 
 @Component({
   selector: 'app-mode-indicator',
+  standalone: true,
   template: `
     @if (!modeStore.isViewMode()) {
       <div class="mode-border" [class]="borderClass()">

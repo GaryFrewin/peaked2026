@@ -27,6 +27,12 @@ export class InteractionHandler implements OnDestroy {
     this.subscriptions.add(
       this.bus.wallClicked$.subscribe(point => this.onWallClicked(point))
     );
+    this.subscriptions.add(
+      this.bus.holdDragStarted$.subscribe(holdId => this.onHoldDragStarted(holdId))
+    );
+    this.subscriptions.add(
+      this.bus.holdDragEnded$.subscribe(holdId => this.onHoldDragEnded(holdId))
+    );
   }
 
   ngOnDestroy(): void {
@@ -83,6 +89,60 @@ export class InteractionHandler implements OnDestroy {
         console.log('[EditRoute] Hold clicked:', holdId);
         // TODO: Toggle hold in/out of the route being edited
         break;
+    }
+  }
+
+  private onHoldDragStarted(holdId: number): void {
+    const mode = this.modeStore.mode();
+    
+    // Only enable dragging in EditHolds mode
+    if (mode !== AppMode.EditHolds) {
+      return;
+    }
+
+    console.log('[EditHolds] Hold drag started:', holdId);
+    
+    // Find the hold entity in the scene and attach the drag-hold component
+    const holdEntity = document.querySelector(`[data-hold-id="${holdId}"]`);
+    if (holdEntity) {
+      holdEntity.setAttribute('drag-hold', '');
+    } else {
+      console.warn(`Could not find hold entity with id ${holdId}`);
+    }
+  }
+
+  private onHoldDragEnded(holdId: number): void {
+    const mode = this.modeStore.mode();
+    
+    // Only process drag end in EditHolds mode
+    if (mode !== AppMode.EditHolds) {
+      return;
+    }
+
+    console.log('[EditHolds] Hold drag ended:', holdId);
+    
+    // Find the hold entity and remove the drag-hold component
+    const holdEntity = document.querySelector(`[data-hold-id="${holdId}"]`) as any;
+    if (holdEntity) {
+      // Capture final position before removing component (A-Frame returns object with x, y, z)
+      const position = holdEntity.getAttribute('position');
+      
+      // Remove the drag component
+      holdEntity.removeAttribute('drag-hold');
+      
+      // Update the hold in the store (triggers API call)
+      const wallId = this.wallStore.selectedWallId()!;
+      const versionId = this.wallStore.selectedVersionId()!;
+      
+      if (position && typeof position === 'object') {
+        this.holdStore.updateHold(wallId, versionId, holdId, {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        });
+      }
+    } else {
+      console.warn(`Could not find hold entity with id ${holdId}`);
     }
   }
 }
