@@ -11,8 +11,12 @@ import {
   computed,
 } from '@angular/core';
 
-// Import wave-animator A-Frame behaviour (self-registering)
+// Import A-Frame behaviours (self-registering)
 import '../../../vr/behaviours/wave-animator';
+import '../../../vr/behaviours/desktop-interaction-manager';
+import { registerDesktopInteractionManager } from '../../../vr/behaviours/desktop-interaction-manager';
+registerDesktopInteractionManager();
+
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
 import { SettingsStore } from '../../../stores/settings.store';
@@ -78,14 +82,6 @@ export class BaseSceneComponent implements AfterViewInit {
 
   // Outputs
   readonly sceneReady = output<void>();
-  
-  /**
-   * Raw hold interaction events - parent decides what to do with them.
-   * BaseScene doesn't know about selection, editing, or modes.
-   */
-  readonly holdHovered = output<number>();
-  readonly holdHoverEnded = output<number>();
-  readonly holdClicked = output<number>();
 
   // Route visualization from store
   readonly selectedRoutes = this.routeStore.selectedRoutes;
@@ -223,57 +219,5 @@ export class BaseSceneComponent implements AfterViewInit {
       },
       { once: true }
     );
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // RAW EVENT EMITTERS (dumb passthrough - parent handles logic)
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Emit raw hover event - parent decides what to do
-   */
-  onHoldHover(holdId: number): void {
-    this.holdHovered.emit(holdId);
-  }
-
-  /**
-   * Emit raw hover end event - parent decides what to do
-   */
-  onHoldHoverEnd(holdId: number): void {
-    this.holdHoverEnded.emit(holdId);
-  }
-
-  /**
-   * Get material for a hold via the injected function.
-   * BaseScene doesn't know about selection/hover - parent provides the logic.
-   */
-  getHoldMaterial(holdId: number): string {
-    return this.holdMaterialFn()(holdId);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PUBLIC ANIMATION API
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Trigger the wave animation on all holds.
-   * Call this when entering edit mode for visual feedback.
-   */
-  triggerHoldWave(): void {
-    const container = this.holdsContainerRef?.nativeElement;
-    if (container) {
-      container.dispatchEvent(new CustomEvent('trigger-wave'));
-    }
-  }
-
-  /**
-   * Stop the wave/pulse animation and reset holds to normal scale.
-   * Call this when exiting edit mode.
-   */
-  stopHoldWave(): void {
-    const container = this.holdsContainerRef?.nativeElement;
-    if (container) {
-      container.dispatchEvent(new CustomEvent('stop-wave'));
-    }
   }
 }
