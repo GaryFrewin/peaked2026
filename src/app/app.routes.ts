@@ -47,6 +47,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'vr/hover-playground',
+    loadComponent: () =>
+      import('./vr/playgrounds/hover-playground/hover-playground.component').then(
+        (m) => m.HoverPlaygroundComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
     path: 'desktop/viewer',
     loadComponent: () =>
       import('./desktop/pages/wall-viewer/wall-viewer').then(

@@ -2,11 +2,7 @@
   [wallModelUrl]="wallStore.modelPath() ?? ''"
   [holds]="holdStore.holds()"
   [visible]="true"
-  [holdMaterialFn]="holdMaterialFn"
   (sceneReady)="onSceneReady()"
-  (holdHovered)="onHoldHovered($event)"
-  (holdHoverEnded)="onHoldHoverEnded($event)"
-  (holdClicked)="onHoldClicked($event)"
 >
   <!-- Desktop-specific: 2D overlay for route drawing -->
   <div slot="overlay" class="scene-overlay">
@@ -28,14 +24,5 @@
 
     <!-- Editor Toolbar -->
     <app-editor-toolbar />
-
-    <!-- Mode Indicator -->
-    @if (editorService.activeToolId() === 'editHolds') {
-      <div class="mode-indicator edit-mode">
-        <span class="mode-icon">📍</span>
-        <span class="mode-text">EDIT HOLDS</span>
-        <span class="mode-hint">Hover + Space to select • ESC to exit</span>
-      </div>
-    }
   </div>
 </app-base-scene>

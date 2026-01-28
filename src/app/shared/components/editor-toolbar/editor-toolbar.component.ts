@@ -1,7 +1,4 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, output, signal } from '@angular/core';
-import { EditorService } from '../../editor/editor.service';
-import { ViewTool } from '../../editor/tools/view.tool';
-import { EditHoldsTool } from '../../editor/tools/edit-holds.tool';
 
 /**
  * Tool item definition for the toolbar
@@ -35,15 +32,8 @@ export interface ToolItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditorToolbarComponent implements OnInit {
-  private readonly editorService = inject(EditorService);
-  private readonly viewTool = inject(ViewTool);
-  private readonly editHoldsTool = inject(EditHoldsTool);
-
   /** Emitted when a tool is clicked */
   readonly toolSelected = output<string>();
-
-  /** Currently active tool ID - delegated to EditorService */
-  readonly activeTool = this.editorService.activeToolId;
 
   /** Currently hovered tool ID */
   readonly hoveredTool = signal<string | null>(null);
@@ -96,12 +86,6 @@ export class EditorToolbarComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Register tools with the editor service
-    this.editorService.registerTool(this.viewTool);
-    this.editorService.registerTool(this.editHoldsTool);
-    
-    // Set default tool to view mode
-    this.editorService.setTool('view');
   }
 
   onToolHover(toolId: string | null): void {
@@ -109,13 +93,10 @@ export class EditorToolbarComponent implements OnInit {
   }
 
   onToolClick(tool: ToolItem): void {
-    if (tool.disabled) return;
-    this.editorService.setTool(tool.id);
-    this.toolSelected.emit(tool.id);
+
   }
 
-  isActive(toolId: string): boolean {
-    return this.activeTool() === toolId;
+  isActive(toolId: string): void {
   }
 
   isHovered(toolId: string): boolean {
