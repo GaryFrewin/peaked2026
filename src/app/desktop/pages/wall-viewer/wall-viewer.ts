@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
+
+// Register desktop-specific A-Frame behaviors
+import '../../../vr/behaviours/desktop-interaction-manager';
+import '../../../vr/behaviours/wave-animator';
+import '../../../vr/behaviours/hold-pulser';
+import { registerDesktopInteractionManager } from '../../../vr/behaviours/desktop-interaction-manager';
+registerDesktopInteractionManager();
+
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';

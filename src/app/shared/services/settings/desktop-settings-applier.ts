@@ -1,6 +1,6 @@
 import { effect, inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { SettingsStore } from '../../../stores/settings.store';
-import { ModeStore } from '../../../stores/mode.store';
+import { ModeStore, AppMode } from '../../../stores/mode.store';
 import { BaseSceneComponent } from '../../components/base-scene/base-scene';
 
 /**
@@ -9,6 +9,8 @@ import { BaseSceneComponent } from '../../components/base-scene/base-scene';
  * Applies settings from SettingsStore to a BaseScene.
  * The BaseScene stays "dumb" - it doesn't know about settings.
  * This service reaches in and modifies A-Frame attributes directly.
+ *
+ * Also handles mode-based effects like triggering wave animations.
  *
  * Usage in WallViewer:
  *   this.settingsApplier.attachTo(this.baseScene);
@@ -29,6 +31,7 @@ export class DesktopSettingsApplier {
       this.setupHoldsVisibility(scene);
       this.setupWallOpacity(scene);
       this.setupSkybox(scene);
+      this.setupModeEffects(scene);
     });
   }
 
@@ -68,6 +71,32 @@ export class DesktopSettingsApplier {
       const sky = sceneEl?.querySelector('a-sky');
       if (sky) {
         sky.setAttribute('visible', String(skyboxPath !== ''));
+      }
+    });
+  }
+
+  /**
+   * Apply mode-specific visual effects
+   * - EditHolds: trigger wave animation, then start pulse
+   */
+  private setupModeEffects(scene: BaseSceneComponent): void {
+    effect(() => {
+      const mode = this.modeStore.mode();
+      const container = scene.holdsContainerRef?.nativeElement;
+      
+      if (!container) return;
+
+      if (mode === AppMode.EditHolds) {
+        // Entering edit holds mode - trigger wave, then start pulse
+        container.dispatchEvent(new Event('trigger-wave'));
+        // Delay pulse start until wave completes (~800ms)
+        setTimeout(() => {
+          container.dispatchEvent(new Event('start-pulse'));
+        }, 800);
+      } else {
+        // Leaving edit mode - stop everything
+        container.dispatchEvent(new Event('stop-wave'));
+        container.dispatchEvent(new Event('stop-pulse'));
       }
     });
   }

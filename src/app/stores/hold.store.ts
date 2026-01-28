@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HoldApi } from '../data-access/hold.api';
 import { CreateHoldRequest, Hold, UpdateHoldRequest } from '../data-contracts/hold.model';
+import { EditHoldStateStore } from './edit-hold-state.store';
 
 /**
  * HOLD STORE
@@ -18,6 +19,7 @@ import { CreateHoldRequest, Hold, UpdateHoldRequest } from '../data-contracts/ho
 @Injectable({ providedIn: 'root' })
 export class HoldStore {
   private api = inject(HoldApi);
+  private editHoldState = inject(EditHoldStateStore);
 
   /** Counter for generating temporary IDs (negative to avoid collision with server IDs) */
   private tempIdCounter = -1;
@@ -93,6 +95,8 @@ export class HoldStore {
 
     this.holds.update((current) => [...current, tempHold]);
     this.error.set(null);
+    // Set the ghost hold position
+    this.editHoldState.pendingHold.set({ x: data.x, y: data.y, z: data.z });
 
     this.api.createHold(wallId, versionId, data).subscribe({
       next: (response) => {
@@ -100,11 +104,13 @@ export class HoldStore {
         this.holds.update((current) =>
           current.map((h) => (h.id === tempId ? response.data : h))
         );
+        this.editHoldState.pendingHold.set(null);
       },
       error: (err) => {
         // Rollback: remove temp hold
         this.holds.update((current) => current.filter((h) => h.id !== tempId));
         this.error.set(`Failed to create hold: ${err.statusText || err.message}`);
+        this.editHoldState.pendingHold.set(null);
       },
     });
   }

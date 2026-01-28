@@ -37,18 +37,22 @@
     }
 
     <!-- All Holds - glowing white spheres with hover/keyboard selection -->
-    <!-- Wrapped in container with wave-animator for edit mode visual feedback -->
+    <!-- wave-animator: one-shot wave effect on edit mode enter -->
+    <!-- hold-pulser: continuous emissive glow during edit mode -->
     <a-entity 
       #holdsContainer
       id="holds-container"
-      wave-animator="selector: .hold; waveDuration: 600; pulseEnabled: true; pulseScale: 1.2; pulseDuration: 1000"
+      wave-animator="selector: .hold; waveDuration: 600"
+      hold-pulser="selector: .hold; minIntensity: 0.2; maxIntensity: 0.9; pulseDuration: 1200; emissiveColor: #ff6600"
     >
       @for (hold of holds(); track hold.id) {
         <a-sphere
           class="hold interactable"
           [attr.data-hold-id]="hold.id"
           [attr.position]="hold.x + ' ' + hold.y + ' ' + hold.z"
-          radius="0.04">
+          radius="0.04"
+          animation__grow="property: scale; to: 1.4 1.4 1.4; dur: 150; easing: easeOutQuad; startEvents: mouseenter"
+          animation__shrink="property: scale; to: 1 1 1; dur: 150; easing: easeOutQuad; startEvents: mouseleave">
         </a-sphere>
       }
     </a-entity>

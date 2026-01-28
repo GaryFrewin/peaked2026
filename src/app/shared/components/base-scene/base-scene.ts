@@ -11,12 +11,6 @@ import {
   computed,
 } from '@angular/core';
 
-// Import A-Frame behaviours (self-registering)
-import '../../../vr/behaviours/wave-animator';
-import '../../../vr/behaviours/desktop-interaction-manager';
-import { registerDesktopInteractionManager } from '../../../vr/behaviours/desktop-interaction-manager';
-registerDesktopInteractionManager();
-
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
 import { Route, RouteHold } from '../../../data-contracts/route.model';
@@ -70,13 +64,6 @@ export class BaseSceneComponent implements AfterViewInit {
   readonly wallModelUrl = input<string>('');
   readonly holds = input<Hold[]>([]);
   readonly visible = input(true);
-  
-  /**
-   * Callback to get material string for a hold.
-   * Parent component provides this to control hold styling.
-   * Default: simple white material.
-   */
-  readonly holdMaterialFn = input<(holdId: number) => string>(() => 'color: #FFFFFF; opacity: 0.8');
 
   // Outputs
   readonly sceneReady = output<void>();

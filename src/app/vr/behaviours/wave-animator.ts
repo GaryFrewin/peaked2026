@@ -1,20 +1,18 @@
 /**
  * Wave Animator A-Frame Component
  *
- * Reusable animation behaviour that triggers a "mexican wave" effect on child entities,
- * followed by an optional continuous pulse.
+ * One-shot "mexican wave" effect on child entities.
+ * Animates scale bottom-to-top with staggered delays.
  *
  * Usage:
- *   <a-entity wave-animator="selector: .hold; waveDuration: 800; pulseEnabled: true">
+ *   <a-entity wave-animator="selector: .hold; waveDuration: 800">
  *     <a-sphere class="hold" position="0 0 0"></a-sphere>
  *     <a-sphere class="hold" position="0 1 0"></a-sphere>
  *   </a-entity>
  *
  * Events:
  *   - trigger-wave: Start the wave animation
- *   - stop-wave: Stop all animations and reset
- *
- * The wave animates bottom-to-top based on Y position, with staggered delays.
+ *   - stop-wave: Cancel animation and reset scale
  */
 
 // Use global AFRAME without redeclaring
@@ -26,9 +24,6 @@ if (_AFRAME) {
       selector: { type: 'string', default: '.hold' },
       waveDuration: { type: 'number', default: 800 }, // Total wave duration (ms)
       waveScale: { type: 'number', default: 1.8 }, // Scale at peak of wave
-      pulseEnabled: { type: 'boolean', default: true },
-      pulseScale: { type: 'number', default: 1.3 }, // Scale during pulse
-      pulseDuration: { type: 'number', default: 1200 }, // Pulse cycle duration
     },
 
     init: function () {
@@ -82,20 +77,6 @@ if (_AFRAME) {
           easing: 'easeInQuad',
           delay: delay + 150,
         });
-
-        // Optional continuous pulse after wave completes
-        if (this.data.pulseEnabled) {
-          child.setAttribute('animation__pulse', {
-            property: 'scale',
-            from: { x: 1, y: 1, z: 1 },
-            to: { x: this.data.pulseScale, y: this.data.pulseScale, z: this.data.pulseScale },
-            dur: this.data.pulseDuration,
-            easing: 'easeInOutSine',
-            loop: true,
-            dir: 'alternate',
-            delay: delay + 350, // Start after wave completes
-          });
-        }
       });
     },
 
@@ -108,7 +89,6 @@ if (_AFRAME) {
       children.forEach((child: any) => {
         child.removeAttribute('animation__wave');
         child.removeAttribute('animation__waveback');
-        child.removeAttribute('animation__pulse');
         child.setAttribute('scale', '1 1 1');
       });
     },
