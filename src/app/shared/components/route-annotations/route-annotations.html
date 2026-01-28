@@ -1,0 +1,16 @@
+<div id="annotation-layer">
+  @for (annotation of annotations(); track annotation.holdId) {
+    <div
+      class="annotation-box"
+      [ngStyle]="{
+        top: annotation.screenY + 'px',
+        left: annotation.screenX + 'px',
+        borderColor: annotation.start ? 'chartreuse' : 'cyan',
+        visibility: (annotation.screenX < 0 || annotation.screenY < 0 || (!annotation.start && !annotation.end)) ? 'hidden' : 'visible'
+      }"
+    >
+      {{ annotation.label }}
+    </div>
+  }
+</div>
+<canvas id="annotation-lines"></canvas>

@@ -4,20 +4,24 @@ import { BaseSceneComponent } from '../../../shared/components/base-scene/base-s
 // Import A-Frame behaviors (registration handled in DesktopSceneApplier when scene ready)
 import '../../../vr/behaviours/wave-animator';
 import '../../../vr/behaviours/hold-pulser';
+import '../../../vr/behaviours/mode-hold-colorizer';
 
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
+import { ModeStore, AppMode } from '../../../stores/mode.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
+import { RouteCreationPanelComponent } from '../../components/route-creation-panel/route-creation-panel';
 import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
 import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
+import { RouteAnnotationsComponent } from '../../../shared/components/route-annotations/route-annotations';
 import { DesktopSettingsApplier } from '../../services/desktop-settings-applier';
 import { DesktopSceneApplier } from '../../services/desktop-scene-applier';
 
 @Component({
   selector: 'app-wall-viewer',
   standalone: true,
-  imports: [BaseSceneComponent, RouteListComponent, EditorToolbarComponent, SettingsPanelComponent],
+  imports: [BaseSceneComponent, RouteListComponent, RouteCreationPanelComponent, EditorToolbarComponent, SettingsPanelComponent, RouteAnnotationsComponent],
   templateUrl: './wall-viewer.html',
   styleUrl: './wall-viewer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +32,8 @@ export class WallViewerComponent implements OnInit {
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
+  protected readonly modeStore = inject(ModeStore);
+  protected readonly AppMode = AppMode;
   private readonly settingsApplier = inject(DesktopSettingsApplier);
   private readonly sceneApplier = inject(DesktopSceneApplier);
 

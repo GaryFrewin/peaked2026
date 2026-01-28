@@ -31,11 +31,13 @@
     <!-- All Holds - glowing white spheres with hover/keyboard selection -->
     <!-- wave-animator: one-shot wave effect on edit mode enter -->
     <!-- hold-pulser: continuous emissive glow during edit mode -->
+    <!-- mode-hold-colorizer: orange in route modes, green otherwise -->
     <a-entity 
       #holdsContainer
       id="holds-container"
       wave-animator="selector: .hold; waveDuration: 600"
       hold-pulser="selector: .hold; minIntensity: 0.2; maxIntensity: 0.9; pulseDuration: 1200; emissiveColor: #ff6600"
+      mode-hold-colorizer="selector: .hold"
     >
       @for (hold of holds(); track hold.id) {
         <a-sphere

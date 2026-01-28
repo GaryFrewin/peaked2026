@@ -6,6 +6,11 @@
 >
   <!-- Desktop-specific: 2D overlay for route drawing -->
   <div slot="overlay" class="scene-overlay">
+    <!-- Route Annotations (only in route modes) -->
+    @if (modeStore.isRouteMode()) {
+      <app-route-annotations />
+    }
+
     <div class="overlay-header">
       @if (wallStore.isLoading() || holdStore.isLoading()) {
         <span>Loading...</span>
@@ -16,10 +21,15 @@
       }
     </div>
 
-    <!-- Route List Sidebar -->
+    <!-- Route List Sidebar / Route Creation Panel -->
     <div class="overlay-sidebar">
-      <h3 class="sidebar-title">Routes</h3>
-      <app-route-list />
+      @if (modeStore.mode() === AppMode.CreateRoute) {
+        <h3 class="sidebar-title">Create Route</h3>
+        <app-route-creation-panel />
+      } @else {
+        <h3 class="sidebar-title">Routes</h3>
+        <app-route-list />
+      }
     </div>
 
     <!-- Settings Panel (toggleable) -->

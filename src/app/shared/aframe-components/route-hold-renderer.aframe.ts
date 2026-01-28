@@ -1,10 +1,13 @@
 import { inject, effect, runInInjectionContext } from '@angular/core';
 import { RouteStore } from '../../stores/route.store';
+import { CreateRouteStateStore } from '../../stores/create-route-state.store';
+import { ModeStore, AppMode } from '../../stores/mode.store';
+import { HoldStore } from '../../stores/hold.store';
 
 /**
  * A-Frame component that renders route holds as colored spheres.
  * 
- * Automatically reacts to RouteStore.selectedRoutes changes and updates the scene.
+ * Automatically reacts to RouteStore.selectedRoutes or CreateRouteStateStore.draftRoute
  * Color logic: GREEN (start), CYAN (end), GOLD (link), WHITE (regular)
  */
 
@@ -47,11 +50,29 @@ AFRAME.registerComponent('route-hold-renderer', {
     }
 
     const routeStore = injector.get(RouteStore);
+    const modeStore = injector.get(ModeStore);
+    const createRouteState = injector.get(CreateRouteStateStore);
+    const holdStore = injector.get(HoldStore);
 
-    // Create effect that runs whenever selectedRoutes changes
+    // Create effect that runs whenever mode, selectedRoutes, or draftRoute changes
     // Must run in injection context
     runInInjectionContext(injector, () => {
       effect(() => {
+        const mode = modeStore.mode();
+        const allHolds = holdStore.holds(); // Track holds signal
+        
+        // In CreateRoute mode, render draft route
+        if (mode === AppMode.CreateRoute) {
+          const draft = createRouteState.draftRoute();
+          if (draft) {
+            this.renderDraftRoute(draft, allHolds);
+          } else {
+            this.clearAllHolds();
+          }
+          return;
+        }
+
+        // Otherwise render selected routes
         const routes = routeStore.selectedRoutes();
         this.renderRouteHolds(routes);
       });
@@ -88,6 +109,43 @@ AFRAME.registerComponent('route-hold-renderer', {
     });
 
     // Update scene: remove holds no longer needed, add/update current holds
+    this.updateHoldEntities(currentHolds);
+  },
+
+  renderDraftRoute: function (draft: any, allHolds: any[]) {
+    const currentHolds: RenderedRouteHold[] = [];
+
+    (draft.route_holds ?? []).forEach((routeHold: any) => {
+      const holdId = routeHold.hold_id;
+      if (!holdId) return;
+
+      // Find hold from HoldStore
+      const hold = allHolds.find((h: any) => h.id === holdId);
+      if (!hold) return;
+
+      // Determine color based on flags
+      const isStart = routeHold.forwardhandstart || routeHold.forwardfootstart;
+      const isEnd = routeHold.reversehandstart || routeHold.reversefootstart;
+
+      let color = COLORS.REGULAR;
+      if (isStart && isEnd) {
+        color = COLORS.LINK;
+      } else if (isStart) {
+        color = COLORS.START;
+      } else if (isEnd) {
+        color = COLORS.END;
+      }
+
+      currentHolds.push({
+        holdId: hold.id,
+        x: hold.x,
+        y: hold.y,
+        z: hold.z,
+        color: color,
+        routeId: 0, // Draft route has no ID yet
+      });
+    });
+
     this.updateHoldEntities(currentHolds);
   },
 
@@ -164,7 +222,7 @@ AFRAME.registerComponent('route-hold-renderer', {
       entity.setAttribute('position', `${hold.x} ${hold.y} ${hold.z}`);
       entity.setAttribute(
         'material',
-        `color: ${hold.color}; emissive: ${hold.color}; emissiveIntensity: 0.8; opacity: 0.85; transparent: true`
+        `color: ${hold.color}; shader: flat; emissive: ${hold.color}; emissiveIntensity: 1.2; opacity: 0.95; transparent: true`
       );
     });
   },
