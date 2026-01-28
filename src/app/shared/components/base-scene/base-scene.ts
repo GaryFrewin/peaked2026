@@ -10,6 +10,9 @@ import {
   inject,
   computed,
 } from '@angular/core';
+
+// Import wave-animator A-Frame behaviour (self-registering)
+import '../../../vr/behaviours/wave-animator';
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
 import { SettingsStore } from '../../../stores/settings.store';
@@ -56,6 +59,7 @@ const COLORS = {
 })
 export class BaseSceneComponent implements AfterViewInit {
   @ViewChild('scene', { static: false }) sceneElement!: ElementRef<HTMLElement>;
+  @ViewChild('holdsContainer', { static: false }) holdsContainerRef!: ElementRef<HTMLElement>;
 
   private readonly routeStore = inject(RouteStore);
   protected readonly settingsStore = inject(SettingsStore);
@@ -245,5 +249,31 @@ export class BaseSceneComponent implements AfterViewInit {
    */
   getHoldMaterial(holdId: number): string {
     return this.holdMaterialFn()(holdId);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PUBLIC ANIMATION API
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Trigger the wave animation on all holds.
+   * Call this when entering edit mode for visual feedback.
+   */
+  triggerHoldWave(): void {
+    const container = this.holdsContainerRef?.nativeElement;
+    if (container) {
+      container.dispatchEvent(new CustomEvent('trigger-wave'));
+    }
+  }
+
+  /**
+   * Stop the wave/pulse animation and reset holds to normal scale.
+   * Call this when exiting edit mode.
+   */
+  stopHoldWave(): void {
+    const container = this.holdsContainerRef?.nativeElement;
+    if (container) {
+      container.dispatchEvent(new CustomEvent('stop-wave'));
+    }
   }
 }

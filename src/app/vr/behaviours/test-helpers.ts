@@ -524,3 +524,49 @@ export function simulateTick(component: any, deltaTime = 16) {
     component.tick(deltaTime, deltaTime);
   }
 }
+
+/**
+ * Set up a test A-Frame scene in the DOM
+ * Returns the scene element
+ */
+export function setupTestScene(): HTMLElement {
+  // Remove any existing scene
+  const existing = document.querySelector('a-scene');
+  if (existing) {
+    existing.remove();
+  }
+
+  // Create scene
+  const scene = document.createElement('a-scene');
+  scene.setAttribute('embedded', '');
+  scene.setAttribute('vr-mode-ui', 'enabled: false');
+  document.body.appendChild(scene);
+
+  return scene;
+}
+
+/**
+ * Clean up test scene from DOM
+ */
+export function teardownTestScene(scene: HTMLElement): void {
+  if (scene && scene.parentNode) {
+    scene.parentNode.removeChild(scene);
+  }
+}
+
+/**
+ * Wait for A-Frame scene to be loaded
+ */
+export function waitForSceneLoad(scene: HTMLElement): Promise<void> {
+  return new Promise((resolve) => {
+    if ((scene as any).hasLoaded) {
+      resolve();
+      return;
+    }
+
+    scene.addEventListener('loaded', () => resolve(), { once: true });
+
+    // Fallback timeout - if scene doesn't fire loaded, resolve anyway after short delay
+    setTimeout(() => resolve(), 200);
+  });
+}

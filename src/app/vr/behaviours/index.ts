@@ -13,6 +13,10 @@ import './wall-opacity';
 import { registerCalibratedAnchorComponent } from './calibrated-anchor';
 registerCalibratedAnchorComponent();
 
+// Auto-register desktop-interaction-manager for mouse event capture
+import { registerDesktopInteractionManager } from './desktop-interaction-manager';
+registerDesktopInteractionManager();
+
 // Re-export registration functions for components that need explicit registration
 export { registerVrButtonComponent } from './vr-button';
 export { registerMarkerPlacerComponent } from './marker-placer';
@@ -21,5 +25,6 @@ export { registerSurfaceCursorComponent } from './surface-cursor';
 export { registerTriangleAlignComponent } from './triangle-align';
 export { registerWireframeRevealBehaviour } from './wireframe-reveal/wireframe-reveal';
 export { registerCalibratedAnchorComponent } from './calibrated-anchor';
+export { registerDesktopInteractionManager } from './desktop-interaction-manager';
 
 console.log('[behaviours] A-Frame behaviours registered');

@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, HostListener, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
 import { EditorToolbarComponent } from '../../../shared/components/editor-toolbar/editor-toolbar.component';
+import { EditorStore } from '../../../stores/editor.store';
+import { EditorService } from '../../../shared/editor/editor.service';
+
+// Hold styling colors
+const HOLD_COLORS = {
+  DEFAULT: '#FFFFFF',
+  HOVERED: '#FFFF00',  // Yellow highlight
+  SELECTED: '#FF6B00', // Orange for selected
+};
 
 @Component({
   selector: 'app-wall-viewer',
@@ -15,11 +24,21 @@ import { EditorToolbarComponent } from '../../../shared/components/editor-toolba
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WallViewerComponent implements OnInit {
+  @ViewChild(BaseSceneComponent) baseScene!: BaseSceneComponent;
+  
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
+  protected readonly editorStore = inject(EditorStore);
+  protected readonly editorService = inject(EditorService);
 
   private readonly sceneReady = signal(false);
+  
+  /** Locally tracked hover state (desktop-specific) */
+  protected readonly hoveredHoldId = signal<number | null>(null);
+  
+  /** Track previous tool to detect transitions */
+  private previousToolId = '';
 
   constructor() {
     // Effect to auto-select first wall when walls load AND scene is ready
@@ -54,6 +73,26 @@ export class WallViewerComponent implements OnInit {
         }
       }
     });
+    
+    // Effect to trigger wave animation when entering/exiting edit mode
+    effect(() => {
+      const currentToolId = this.editorService.activeToolId();
+      
+      // Detect transition into edit mode
+      if (currentToolId === 'editHolds' && this.previousToolId !== 'editHolds') {
+        console.log('[WallViewer] Entering edit mode - triggering wave animation');
+        // Small delay to ensure scene is ready
+        setTimeout(() => this.baseScene?.triggerHoldWave(), 50);
+      }
+      
+      // Detect transition out of edit mode  
+      if (currentToolId !== 'editHolds' && this.previousToolId === 'editHolds') {
+        console.log('[WallViewer] Exiting edit mode - stopping wave animation');
+        this.baseScene?.stopHoldWave();
+      }
+      
+      this.previousToolId = currentToolId;
+    });
   }
 
   ngOnInit(): void {
@@ -73,5 +112,74 @@ export class WallViewerComponent implements OnInit {
   onSceneReady(): void {
     console.log('Desktop scene ready - setting sceneReady signal');
     this.sceneReady.set(true);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HOLD MATERIAL CALLBACK (provided to BaseScene)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Returns A-Frame material string for a hold based on editor state.
+   * This is the desktop-specific styling logic - BaseScene doesn't care about modes.
+   */
+  protected readonly holdMaterialFn = (holdId: number): string => {
+    const isSelected = this.editorStore.selectedHoldIds().has(holdId);
+    const isHovered = this.hoveredHoldId() === holdId;
+    
+    // Selection takes priority
+    if (isSelected) {
+      return `color: ${HOLD_COLORS.SELECTED}; emissive: ${HOLD_COLORS.SELECTED}; emissiveIntensity: 0.5; opacity: 0.9`;
+    }
+    
+    // Hover highlight (only in edit mode)
+    if (isHovered && this.editorService.activeToolId() === 'editHolds') {
+      return `color: ${HOLD_COLORS.HOVERED}; emissive: ${HOLD_COLORS.HOVERED}; emissiveIntensity: 0.3; opacity: 0.9`;
+    }
+    
+    // Default
+    return `color: ${HOLD_COLORS.DEFAULT}; opacity: 0.8`;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HOLD INTERACTION HANDLERS (from BaseScene events)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  onHoldHovered(holdId: number): void {
+    this.hoveredHoldId.set(holdId);
+    this.editorService.handleHoldHover(holdId);
+  }
+
+  onHoldHoverEnded(holdId: number): void {
+    if (this.hoveredHoldId() === holdId) {
+      this.hoveredHoldId.set(null);
+    }
+    this.editorService.handleHoldHoverEnd(holdId);
+  }
+
+  onHoldClicked(holdId: number): void {
+    this.editorService.handleHoldClick(holdId);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS (desktop-specific)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    // Space or Enter to select hovered hold
+    if ((event.code === 'Space' || event.code === 'Enter') && this.hoveredHoldId() !== null) {
+      event.preventDefault();
+      this.editorService.handleHoldClick(this.hoveredHoldId()!);
+    }
+    
+    // Escape to switch to view mode
+    if (event.code === 'Escape') {
+      this.editorService.setTool('view');
+    }
+    
+    // H for edit holds mode
+    if (event.code === 'KeyH' && !event.ctrlKey && !event.altKey) {
+      this.editorService.setTool('editHolds');
+    }
   }
 }
