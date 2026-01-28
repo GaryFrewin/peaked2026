@@ -14,7 +14,8 @@ import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
 import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
 import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
-import { DesktopSettingsApplier } from '../../../shared/services/settings/desktop-settings-applier';
+import { DesktopSettingsApplier } from '../../services/desktop-settings-applier';
+import { DesktopSceneApplier } from '../../services/desktop-scene-applier';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -31,6 +32,7 @@ export class WallViewerComponent implements OnInit {
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
   private readonly settingsApplier = inject(DesktopSettingsApplier);
+  private readonly sceneApplier = inject(DesktopSceneApplier);
 
   private readonly sceneReady = signal(false);
   protected readonly settingsOpen = signal(false);
@@ -88,38 +90,13 @@ export class WallViewerComponent implements OnInit {
     console.log('Desktop scene ready - setting sceneReady signal');
     this.sceneReady.set(true);
     
-    // Attach settings applier to manage scene settings reactively
+    // SettingsApplier: Reactively applies user settings (holds visibility, wall opacity, etc.)
+    // to A-Frame scene whenever settings change in the store
     this.settingsApplier.attachTo(this.baseScene);
     
-    // Attach desktop-specific interaction manager to wall-environment
-    this.attachDesktopInteractionManager();
-    
-    // Attach desktop-specific mouse cursor for raycasting
-    this.attachMouseCursor();
-  }
-
-  private attachDesktopInteractionManager(): void {
-    const wallEnvironment = this.baseScene.sceneElement.nativeElement.querySelector('#wall-environment');
-    if (wallEnvironment) {
-      wallEnvironment.setAttribute('desktop-interaction-manager', '');
-      console.log('Desktop interaction manager attached to wall-environment');
-    } else {
-      console.warn('wall-environment entity not found for desktop interaction manager');
-    }
-  }
-
-  private attachMouseCursor(): void {
-    const scene = this.baseScene.sceneElement.nativeElement.querySelector('a-scene');
-    if (scene) {
-      const mouseCursor = document.createElement('a-entity');
-      mouseCursor.setAttribute('id', 'mouseCursor');
-      mouseCursor.setAttribute('cursor', 'rayOrigin: mouse; fuse: false');
-      mouseCursor.setAttribute('raycaster', 'objects: .interactable, .hold, .wall; far: 100');
-      scene.appendChild(mouseCursor);
-      console.log('Mouse cursor attached for desktop raycasting');
-    } else {
-      console.warn('a-scene not found for mouse cursor');
-    }
+    // SceneApplier: One-time setup of desktop-specific A-Frame entities and behaviors
+    // (mouse cursor for raycasting, interaction manager for mouse events)
+    this.sceneApplier.attachTo(this.baseScene);
   }
 
   onToolSelected(toolId: string): void {

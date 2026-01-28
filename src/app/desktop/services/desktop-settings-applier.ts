@@ -1,19 +1,21 @@
 import { effect, inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
-import { SettingsStore } from '../../../stores/settings.store';
-import { ModeStore, AppMode } from '../../../stores/mode.store';
-import { BaseSceneComponent } from '../../components/base-scene/base-scene';
+import { SettingsStore } from '../../stores/settings.store';
+import { ModeStore, AppMode } from '../../stores/mode.store';
+import { BaseSceneComponent } from '../../shared/components/base-scene/base-scene';
 
 /**
  * DESKTOP SETTINGS APPLIER
  *
- * Applies settings from SettingsStore to a BaseScene.
- * The BaseScene stays "dumb" - it doesn't know about settings.
- * This service reaches in and modifies A-Frame attributes directly.
+ * Reactively syncs SettingsStore changes to A-Frame scene:
+ * - Holds visibility (forced on during edit modes)
+ * - Wall opacity (material transparency)
+ * - Skybox visibility (based on selected background)
+ * - Mode effects (wave/pulse animations when entering EditHolds)
  *
- * Also handles mode-based effects like triggering wave animations.
+ * Uses Angular effects to watch store signals and update A-Frame DOM.
+ * BaseScene stays dumb - this service manipulates its A-Frame attributes.
  *
- * Usage in WallViewer:
- *   this.settingsApplier.attachTo(this.baseScene);
+ * Usage: this.settingsApplier.attachTo(this.baseScene);
  */
 @Injectable({ providedIn: 'root' })
 export class DesktopSettingsApplier {

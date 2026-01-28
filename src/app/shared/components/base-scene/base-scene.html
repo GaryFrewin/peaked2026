@@ -26,14 +26,7 @@
     }
 
     <!-- Route Holds - colored spheres for selected routes -->
-    @for (routeHold of routeHoldsToRender(); track routeHold.holdId + '-' + routeHold.routeId) {
-      <a-sphere
-        class="route-hold"
-        [attr.position]="routeHold.position.x + ' ' + routeHold.position.y + ' ' + routeHold.position.z"
-        radius="0.06"
-        [attr.material]="'color: ' + routeHold.color + '; emissive: ' + routeHold.color + '; emissiveIntensity: 0.8; opacity: 0.85; transparent: true'">
-      </a-sphere>
-    }
+    <a-entity route-hold-renderer></a-entity>
 
     <!-- All Holds - glowing white spheres with hover/keyboard selection -->
     <!-- wave-animator: one-shot wave effect on edit mode enter -->
