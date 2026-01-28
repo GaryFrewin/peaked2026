@@ -40,4 +40,14 @@
       [value]="settingsStore.wallOpacity()"
       (input)="onWallOpacityChange($event)" />
   </div>
+
+  <div class="setting-row">
+    <label for="holds-visible-toggle">Show all holds</label>
+    <input 
+      type="checkbox"
+      id="holds-visible-toggle"
+      data-testid="holds-visible-toggle"
+      [checked]="settingsStore.holdsVisible()"
+      (change)="onHoldsVisibleChange($event)" />
+  </div>
 </div>

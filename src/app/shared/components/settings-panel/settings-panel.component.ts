@@ -27,4 +27,9 @@ export class SettingsPanelComponent {
     const slider = event.target as HTMLInputElement;
     this.settingsStore.setWallOpacity(parseFloat(slider.value));
   }
+
+  onHoldsVisibleChange(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    this.settingsStore.setHoldsVisible(checkbox.checked);
+  }
 }

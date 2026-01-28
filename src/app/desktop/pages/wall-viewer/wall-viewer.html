@@ -22,7 +22,14 @@
       <app-route-list />
     </div>
 
+    <!-- Settings Panel (toggleable) -->
+    @if (settingsOpen()) {
+      <div class="settings-overlay">
+        <app-settings-panel />
+      </div>
+    }
+
     <!-- Editor Toolbar -->
-    <app-editor-toolbar />
+    <app-editor-toolbar (toolSelected)="onToolSelected($event)" />
   </div>
 </app-base-scene>

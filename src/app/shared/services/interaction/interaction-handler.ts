@@ -30,35 +30,25 @@ export class InteractionHandler implements OnDestroy {
 
     switch (mode) {
       case AppMode.View:
-        // PSEUDOCODE:
-        // 1. Set selectedHoldId in HoldStore
-        // 2. HoldDetailsPanel component reacts to show hold info
-        // 3. If a route contains this hold, maybe highlight that route?
+        console.log('[View] Hold clicked:', holdId);
+        // TODO: Set selectedHoldId in HoldStore
+        // HoldDetailsPanel component reacts to show hold info
         break;
 
       case AppMode.EditHolds:
-        // PSEUDOCODE:
-        // 1. Toggle holdId in HoldStore.selectedHoldIds (Set<number>)
-        // 2. If now selected: hold renders yellow/highlighted
-        // 3. If now deselected: hold renders normal color
-        // 4. Selected holds can then be deleted, moved, or edited via toolbar actions
+        console.log('[EditHolds] Hold clicked:', holdId);
+        // TODO: Toggle holdId in HoldStore.selectedHoldIds (Set<number>)
+        // Selected holds can be deleted, moved, or edited via toolbar
         break;
 
       case AppMode.CreateRoute:
-        // PSEUDOCODE:
-        // 1. Add hold to RouteInProgress.holds[] (if not already in)
-        //    - Or remove if already in (toggle behavior)
-        // 2. Prompt: is this a start hold? (hand/foot, forward/reverse)
-        // 3. Hold renders in "route color" to show it's part of route
-        // 4. Route line/path updates to include this hold
+        console.log('[CreateRoute] Hold clicked:', holdId);
+        // TODO: Add/remove hold from RouteInProgress.holds[]
         break;
 
       case AppMode.EditRoute:
-        // PSEUDOCODE:
-        // 1. Same as CreateRoute, but we're editing an existing route
-        // 2. Toggle hold in/out of the route
-        // 3. If removing a start hold, clear that start marker
-        // 4. Track changes for save/cancel
+        console.log('[EditRoute] Hold clicked:', holdId);
+        // TODO: Toggle hold in/out of the route being edited
         break;
     }
   }

@@ -17,9 +17,6 @@ import '../../../vr/behaviours/desktop-interaction-manager';
 import { registerDesktopInteractionManager } from '../../../vr/behaviours/desktop-interaction-manager';
 registerDesktopInteractionManager();
 
-// Import InteractionBus to ensure it's instantiated and registered on window
-import { InteractionBus } from '../../services/interaction/interaction-bus';
-
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
 import { Route, RouteHold } from '../../../data-contracts/route.model';
@@ -68,10 +65,6 @@ export class BaseSceneComponent implements AfterViewInit {
   @ViewChild('holdsContainer', { static: false }) holdsContainerRef!: ElementRef<HTMLElement>;
 
   private readonly routeStore = inject(RouteStore);
-  
-  // Inject InteractionBus to ensure it's instantiated and registered on window.peakedBus
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private readonly interactionBus = inject(InteractionBus);
 
   // Inputs
   readonly wallModelUrl = input<string>('');

@@ -5,12 +5,13 @@ import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
 import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
+import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
 import { DesktopSettingsApplier } from '../../../shared/services/settings/desktop-settings-applier';
 
 @Component({
   selector: 'app-wall-viewer',
   standalone: true,
-  imports: [BaseSceneComponent, RouteListComponent, EditorToolbarComponent],
+  imports: [BaseSceneComponent, RouteListComponent, EditorToolbarComponent, SettingsPanelComponent],
   templateUrl: './wall-viewer.html',
   styleUrl: './wall-viewer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +25,7 @@ export class WallViewerComponent implements OnInit {
   private readonly settingsApplier = inject(DesktopSettingsApplier);
 
   private readonly sceneReady = signal(false);
+  protected readonly settingsOpen = signal(false);
 
   constructor() {
     // Effect to auto-select first wall when walls load AND scene is ready
@@ -80,5 +82,11 @@ export class WallViewerComponent implements OnInit {
     
     // Attach settings applier to manage scene settings reactively
     this.settingsApplier.attachTo(this.baseScene);
+  }
+
+  onToolSelected(toolId: string): void {
+    if (toolId === 'settings') {
+      this.settingsOpen.update(open => !open);
+    }
   }
 }
