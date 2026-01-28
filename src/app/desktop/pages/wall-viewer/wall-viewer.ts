@@ -90,6 +90,19 @@ export class WallViewerComponent implements OnInit {
     
     // Attach settings applier to manage scene settings reactively
     this.settingsApplier.attachTo(this.baseScene);
+    
+    // Attach desktop-specific interaction manager to wall-environment
+    this.attachDesktopInteractionManager();
+  }
+
+  private attachDesktopInteractionManager(): void {
+    const wallEnvironment = this.baseScene.sceneElement.nativeElement.querySelector('#wall-environment');
+    if (wallEnvironment) {
+      wallEnvironment.setAttribute('desktop-interaction-manager', '');
+      console.log('Desktop interaction manager attached to wall-environment');
+    } else {
+      console.warn('wall-environment entity not found for desktop interaction manager');
+    }
   }
 
   onToolSelected(toolId: string): void {
