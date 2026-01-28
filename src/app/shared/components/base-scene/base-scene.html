@@ -60,13 +60,6 @@
     <ng-content select="[slot=entities]" />
   </a-entity>
 
-  <!-- Mouse cursor for desktop raycasting (enables mouseenter/mouseleave on entities) -->
-  <a-entity 
-    id="mouseCursor" 
-    cursor="rayOrigin: mouse; fuse: false" 
-    raycaster="objects: .interactable, .hold, .wall; far: 100">
-  </a-entity>
-
   <!-- Extension point: environment (sky, lights, etc) -->
   <ng-content select="[slot=environment]" />
 </a-scene>

@@ -93,6 +93,9 @@ export class WallViewerComponent implements OnInit {
     
     // Attach desktop-specific interaction manager to wall-environment
     this.attachDesktopInteractionManager();
+    
+    // Attach desktop-specific mouse cursor for raycasting
+    this.attachMouseCursor();
   }
 
   private attachDesktopInteractionManager(): void {
@@ -102,6 +105,20 @@ export class WallViewerComponent implements OnInit {
       console.log('Desktop interaction manager attached to wall-environment');
     } else {
       console.warn('wall-environment entity not found for desktop interaction manager');
+    }
+  }
+
+  private attachMouseCursor(): void {
+    const scene = this.baseScene.sceneElement.nativeElement.querySelector('a-scene');
+    if (scene) {
+      const mouseCursor = document.createElement('a-entity');
+      mouseCursor.setAttribute('id', 'mouseCursor');
+      mouseCursor.setAttribute('cursor', 'rayOrigin: mouse; fuse: false');
+      mouseCursor.setAttribute('raycaster', 'objects: .interactable, .hold, .wall; far: 100');
+      scene.appendChild(mouseCursor);
+      console.log('Mouse cursor attached for desktop raycasting');
+    } else {
+      console.warn('a-scene not found for mouse cursor');
     }
   }
 
