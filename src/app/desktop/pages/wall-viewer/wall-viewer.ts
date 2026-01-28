@@ -100,5 +100,6 @@ export class WallViewerComponent implements OnInit {
     if (toolId === 'settings') {
       this.settingsOpen.update(open => !open);
     }
+    // Other tool actions (merge, etc.) are handled by InteractionHandler via InteractionBus
   }
 }

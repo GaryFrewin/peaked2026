@@ -51,6 +51,11 @@ export function registerDesktopInteractionManager(): void {
       this.holdPressTimerId = null;
       this.pressState = null;
 
+      // Double-click detection state
+      this.lastClickTime = null;
+      this.lastClickedHoldId = null;
+      this.doubleClickThreshold = 300; // milliseconds
+
       // Bind handlers
       this.onMouseDown = this.onMouseDown.bind(this);
       this.onMouseUp = this.onMouseUp.bind(this);
@@ -196,6 +201,25 @@ export function registerDesktopInteractionManager(): void {
 
       // Emit to InteractionBus
       (window as any).peakedBus?.emitHoldClicked(holdId);
+
+      // Double-click detection
+      const now = Date.now();
+      const isDoubleClick =
+        this.lastClickedHoldId === holdId &&
+        this.lastClickTime !== null &&
+        now - this.lastClickTime < this.doubleClickThreshold;
+
+      if (isDoubleClick) {
+        this.log('holdDoubleClicked', { holdId });
+        (window as any).peakedBus?.emitHoldDoubleClicked(holdId);
+        // Reset tracking after double-click
+        this.lastClickTime = null;
+        this.lastClickedHoldId = null;
+      } else {
+        // Update tracking for next potential double-click
+        this.lastClickTime = now;
+        this.lastClickedHoldId = holdId;
+      }
     },
 
     handleHoldHover: function (target: HTMLElement, entered: boolean) {

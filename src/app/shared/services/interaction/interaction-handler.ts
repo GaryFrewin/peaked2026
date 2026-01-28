@@ -4,6 +4,7 @@ import { InteractionBus } from './interaction-bus';
 import { ModeStore, AppMode } from '../../../stores/mode.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { WallStore } from '../../../stores/wall.store';
+import { EditHoldStateStore } from '../../../stores/edit-hold-state.store';
 
 /**
  * INTERACTION HANDLER
@@ -19,10 +20,14 @@ export class InteractionHandler implements OnDestroy {
   // Inject EditHoldStateStore and HoldStore for edit holds mode
   private readonly holdStore = inject(HoldStore); 
   private readonly wallStore = inject(WallStore);
+  private readonly editHoldState = inject(EditHoldStateStore);
 
   constructor() {
     this.subscriptions.add(
       this.bus.holdClicked$.subscribe(holdId => this.onHoldClicked(holdId))
+    );
+    this.subscriptions.add(
+      this.bus.holdDoubleClicked$.subscribe(holdId => this.onHoldDoubleClicked(holdId))
     );
     this.subscriptions.add(
       this.bus.wallClicked$.subscribe(point => this.onWallClicked(point))
@@ -76,8 +81,16 @@ export class InteractionHandler implements OnDestroy {
 
       case AppMode.EditHolds:
         console.log('[EditHolds] Hold clicked:', holdId);
-        // TODO: Toggle holdId in HoldStore.selectedHoldIds (Set<number>)
-        // Selected holds can be deleted, moved, or edited via toolbar
+        // Toggle hold selection
+        this.editHoldState.selectedHoldIds.update(currentSet => {
+          const newSet = new Set(currentSet);
+          if (newSet.has(holdId)) {
+            newSet.delete(holdId);
+          } else {
+            newSet.add(holdId);
+          }
+          return newSet;
+        });
         break;
 
       case AppMode.CreateRoute:
@@ -89,6 +102,35 @@ export class InteractionHandler implements OnDestroy {
         console.log('[EditRoute] Hold clicked:', holdId);
         // TODO: Toggle hold in/out of the route being edited
         break;
+    }
+  }
+
+  private onHoldDoubleClicked(holdId: number): void {
+    const mode = this.modeStore.mode();
+
+    // Only handle double-click in EditHolds mode
+    if (mode !== AppMode.EditHolds) {
+      console.log(`[${mode}] Hold double-clicked:`, holdId, '(ignored - not in EditHolds mode)');
+      return;
+    }
+
+    console.log('[EditHolds] Hold double-clicked:', holdId);
+    
+    // Show confirmation dialog
+    const confirmed = confirm(`Are you sure you want to delete hold #${holdId}?`);
+    
+    if (confirmed) {
+      const wallId = this.wallStore.selectedWallId();
+      const versionId = this.wallStore.selectedVersionId();
+      
+      if (wallId && versionId) {
+        console.log('[EditHolds] Deleting hold:', holdId);
+        this.holdStore.deleteHold(wallId, versionId, holdId);
+      } else {
+        console.warn('[EditHolds] Cannot delete hold - no wall or version selected');
+      }
+    } else {
+      console.log('[EditHolds] Hold deletion cancelled');
     }
   }
 
@@ -144,5 +186,48 @@ export class InteractionHandler implements OnDestroy {
     } else {
       console.warn(`Could not find hold entity with id ${holdId}`);
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PUBLIC API - Called by UI components (toolbar, etc.)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Merge selected holds
+   * Called by EditorToolbar when merge button is clicked
+   */
+  mergeSelectedHolds(): void {
+    const mode = this.modeStore.mode();
+    
+    // Only allow merge in EditHolds mode
+    if (mode !== AppMode.EditHolds) {
+      console.warn('[mergeSelectedHolds] Not in EditHolds mode');
+      return;
+    }
+
+    const selectedIds = Array.from(this.editHoldState.selectedHoldIds());
+    
+    if (selectedIds.length < 2) {
+      alert('Please select at least 2 holds to merge');
+      return;
+    }
+
+    // Show confirmation dialog with strategy options
+    const strategy = confirm(
+      `Merge ${selectedIds.length} holds?\n\n` +
+      `OK = Average position (new hold at center)\n` +
+      `Cancel = Keep first hold as master`
+    ) ? 'average' : 'master';
+
+    const wallId = this.wallStore.selectedWallId();
+    const versionId = this.wallStore.selectedVersionId();
+
+    if (!wallId || !versionId) {
+      console.warn('[mergeSelectedHolds] No wall or version selected');
+      return;
+    }
+
+    console.log(`[EditHolds] Merging ${selectedIds.length} holds with strategy: ${strategy}`);
+    this.holdStore.mergeHolds(wallId, versionId, selectedIds, strategy);
   }
 }

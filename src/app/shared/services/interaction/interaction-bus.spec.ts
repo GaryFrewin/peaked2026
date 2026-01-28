@@ -39,6 +39,15 @@ describe('InteractionBus', () => {
       bus.emitHoldClicked(42);
     });
 
+    it('should emit holdDoubleClicked when emitHoldDoubleClicked is called', (done) => {
+      bus.holdDoubleClicked$.subscribe((holdId) => {
+        expect(holdId).toBe(42);
+        done();
+      });
+
+      bus.emitHoldDoubleClicked(42);
+    });
+
     it('should emit holdHovered when emitHoldHovered is called', (done) => {
       bus.holdHovered$.subscribe((holdId) => {
         expect(holdId).toBe(99);

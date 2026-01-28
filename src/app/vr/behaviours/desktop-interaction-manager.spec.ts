@@ -289,6 +289,200 @@ describe('desktop-interaction-manager', () => {
       });
     });
 
+    describe('hold double-click handling', () => {
+      let mockPeakedBus: any;
+      let mockDateNow: jasmine.Spy;
+      let currentTime: number;
+
+      beforeEach(() => {
+        mockPeakedBus = {
+          emitHoldClicked: jasmine.createSpy('emitHoldClicked'),
+          emitHoldDoubleClicked: jasmine.createSpy('emitHoldDoubleClicked'),
+        };
+        (window as any).peakedBus = mockPeakedBus;
+        
+        // Mock Date.now() to control time
+        currentTime = 1000000; // Start at some arbitrary time
+        mockDateNow = spyOn(Date, 'now').and.callFake(() => currentTime);
+      });
+
+      afterEach(() => {
+        delete (window as any).peakedBus;
+      });
+
+      it('should emit holdDoubleClicked when same hold is clicked twice within 300ms', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const createClickEvents = () => ({
+          down: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0 } }
+          },
+          up: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+          }
+        });
+
+        // First click at time 1000000
+        const click1 = createClickEvents();
+        mouseDownHandler(click1.down);
+        mouseUpHandler(click1.up);
+        
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledWith(42);
+        expect(mockPeakedBus.emitHoldDoubleClicked).not.toHaveBeenCalled();
+        
+        // Advance time by 200ms
+        currentTime += 200;
+        
+        // Second click within 300ms threshold
+        const click2 = createClickEvents();
+        mouseDownHandler(click2.down);
+        mouseUpHandler(click2.up);
+        
+        expect(mockPeakedBus.emitHoldDoubleClicked).toHaveBeenCalledWith(42);
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledTimes(2);
+      });
+
+      it('should NOT emit holdDoubleClicked when clicks are more than 300ms apart', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const createClickEvents = () => ({
+          down: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0 } }
+          },
+          up: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+          }
+        });
+
+        // First click at time 1000000
+        const click1 = createClickEvents();
+        mouseDownHandler(click1.down);
+        mouseUpHandler(click1.up);
+        
+        // Advance time by 400ms (beyond threshold)
+        currentTime += 400;
+        
+        // Second click after threshold
+        const click2 = createClickEvents();
+        mouseDownHandler(click2.down);
+        mouseUpHandler(click2.up);
+        
+        expect(mockPeakedBus.emitHoldDoubleClicked).not.toHaveBeenCalled();
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledTimes(2);
+      });
+
+      it('should NOT emit holdDoubleClicked when clicking two different holds', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement1 = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement1 : null,
+        };
+
+        const mockHoldElement2 = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '99' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement2 : null,
+        };
+
+        // Click first hold at time 1000000
+        mouseDownHandler({ 
+          target: mockHoldElement1,
+          detail: { intersection: { distance: 5.0 } }
+        });
+        mouseUpHandler({ 
+          target: mockHoldElement1,
+          detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+        });
+        
+        // Advance time by 200ms (within threshold)
+        currentTime += 200;
+        
+        // Click second hold (different hold ID)
+        mouseDownHandler({ 
+          target: mockHoldElement2,
+          detail: { intersection: { distance: 5.0 } }
+        });
+        mouseUpHandler({ 
+          target: mockHoldElement2,
+          detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+        });
+        
+        expect(mockPeakedBus.emitHoldDoubleClicked).not.toHaveBeenCalled();
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledWith(42);
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledWith(99);
+      });
+
+      it('should reset double-click tracking after first double-click', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const createClickEvents = () => ({
+          down: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0 } }
+          },
+          up: { 
+            target: mockHoldElement,
+            detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+          }
+        });
+
+        // First click at time 1000000
+        const click1 = createClickEvents();
+        mouseDownHandler(click1.down);
+        mouseUpHandler(click1.up);
+        
+        // Advance time by 200ms
+        currentTime += 200;
+        
+        // Second click triggers double-click
+        const click2 = createClickEvents();
+        mouseDownHandler(click2.down);
+        mouseUpHandler(click2.up);
+        
+        expect(mockPeakedBus.emitHoldDoubleClicked).toHaveBeenCalledWith(42);
+        expect(mockPeakedBus.emitHoldDoubleClicked).toHaveBeenCalledTimes(1);
+        
+        // Advance time by 200ms
+        currentTime += 200;
+        
+        // Third click should NOT trigger another double-click (tracking was reset)
+        const click3 = createClickEvents();
+        mouseDownHandler(click3.down);
+        mouseUpHandler(click3.up);
+        
+        // Should still only have one double-click
+        expect(mockPeakedBus.emitHoldDoubleClicked).toHaveBeenCalledTimes(1);
+      });
+    });
+
     describe('hold hover handling', () => {
       let mockPeakedBus: any;
 
@@ -524,7 +718,7 @@ describe('desktop-interaction-manager', () => {
         expect(clickCalls.length).toBe(0);
       });
 
-      it('should cancel drag timer on mouseleave', () => {
+      it('should NOT cancel drag timer on mouseleave if mouse button still down', () => {
         const mouseDownHandler = eventListeners.get('mousedown')!;
         const mouseLeaveHandler = eventListeners.get('mouseleave')!;
         
@@ -545,13 +739,14 @@ describe('desktop-interaction-manager', () => {
         mouseDownHandler(mouseDownEvent);
         jasmine.clock().tick(300); // Partway through
 
+        // Mouse leaves hold while button is still down
         mouseLeaveHandler({ target: mockHoldElement });
 
-        // Complete the 500ms
+        // Complete the 500ms - drag SHOULD still start
         jasmine.clock().tick(200);
 
-        // Should NOT have started drag
-        expect(mockPeakedBus.emitHoldDragStarted).not.toHaveBeenCalled();
+        // Drag should have started even though mouse left the hold
+        expect(mockPeakedBus.emitHoldDragStarted).toHaveBeenCalledWith(42);
       });
 
       it('should cancel drag timer on mouseup before 500ms', () => {

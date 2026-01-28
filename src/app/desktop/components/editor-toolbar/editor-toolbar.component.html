@@ -1,4 +1,28 @@
 <nav class="editor-toolbar" role="toolbar" aria-label="Editor tools">
+  <!-- Dynamic merge button (shown when 2+ holds selected) -->
+  @if (showMergeButton()) {
+    <div class="tool-wrapper merge-button-wrapper">
+      <button
+        class="tool-button merge-button"
+        [attr.aria-label]="'Merge ' + selectedHoldCount() + ' holds'"
+        (mouseenter)="onToolHover('merge')"
+        (mouseleave)="onToolHover(null)"
+        (click)="onMergeClick()"
+      >
+        <span class="tool-icon">🔀</span>
+        <span class="active-indicator"></span>
+      </button>
+
+      <!-- Tooltip popup -->
+      @if (isHovered('merge')) {
+        <div class="tool-tooltip">
+          <span class="tooltip-label">Merge {{ selectedHoldCount() }} holds</span>
+        </div>
+      }
+      <div class="divider"></div>
+    </div>
+  }
+
   @for (tool of tools; track tool.id; let i = $index) {
     <div class="tool-wrapper" [style.animation-delay]="getAnimationDelay(i)">
       <button

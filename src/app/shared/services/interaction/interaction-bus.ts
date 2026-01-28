@@ -49,6 +49,7 @@ export class InteractionBus implements OnDestroy {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private readonly _holdClicked$ = new Subject<number>();
+  private readonly _holdDoubleClicked$ = new Subject<number>();
   private readonly _holdHovered$ = new Subject<number>();
   private readonly _holdUnhovered$ = new Subject<number>();
   private readonly _wallClicked$ = new Subject<Point3D>();
@@ -61,6 +62,9 @@ export class InteractionBus implements OnDestroy {
 
   /** Emitted when a hold is clicked. Payload: holdId */
   readonly holdClicked$: Observable<number> = this._holdClicked$.asObservable();
+
+  /** Emitted when a hold is double-clicked. Payload: holdId */
+  readonly holdDoubleClicked$: Observable<number> = this._holdDoubleClicked$.asObservable();
 
   /** Emitted when mouse/controller enters a hold. Payload: holdId */
   readonly holdHovered$: Observable<number> = this._holdHovered$.asObservable();
@@ -95,6 +99,7 @@ export class InteractionBus implements OnDestroy {
 
     // Complete all subjects
     this._holdClicked$.complete();
+    this._holdDoubleClicked$.complete();
     this._holdHovered$.complete();
     this._holdUnhovered$.complete();
     this._wallClicked$.complete();
@@ -112,6 +117,14 @@ export class InteractionBus implements OnDestroy {
    */
   emitHoldClicked(holdId: number): void {
     this._holdClicked$.next(holdId);
+  }
+
+  /**
+   * Called when a hold is double-clicked
+   * @param holdId - The ID of the double-clicked hold
+   */
+  emitHoldDoubleClicked(holdId: number): void {
+    this._holdDoubleClicked$.next(holdId);
   }
 
   /**

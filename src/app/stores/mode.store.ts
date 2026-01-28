@@ -1,4 +1,5 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { EditHoldStateStore } from './edit-hold-state.store';
 
 /**
  * Application modes for the climbing wall viewer/editor
@@ -23,6 +24,8 @@ export enum AppMode {
  */
 @Injectable({ providedIn: 'root' })
 export class ModeStore {
+  private readonly editHoldState = inject(EditHoldStateStore);
+
   /** Current application mode */
   readonly mode = signal<AppMode>(AppMode.View);
 
@@ -39,9 +42,16 @@ export class ModeStore {
 
   /**
    * Change to a new mode
+   * Clears EditHoldStateStore when leaving EditHolds mode
    */
   setMode(mode: AppMode): void {
+    const previousMode = this.mode();
     this.mode.set(mode);
+
+    // Clear edit hold state when leaving EditHolds mode
+    if (previousMode === AppMode.EditHolds && mode !== AppMode.EditHolds) {
+      this.editHoldState.clear();
+    }
   }
 
   /**

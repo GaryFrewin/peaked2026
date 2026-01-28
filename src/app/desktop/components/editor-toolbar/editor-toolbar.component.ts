@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, signal } from '@angular/core';
 import { ModeStore, AppMode } from '../../../stores/mode.store';
+import { EditHoldStateStore } from '../../../stores/edit-hold-state.store';
+import { InteractionHandler } from '../../../shared/services/interaction/interaction-handler';
 
 /**
  * Tool item definition for the toolbar
@@ -35,12 +37,22 @@ export interface ToolItem {
 })
 export class EditorToolbarComponent implements OnInit {
   private readonly modeStore = inject(ModeStore);
+  private readonly editHoldState = inject(EditHoldStateStore);
+  private readonly interactionHandler = inject(InteractionHandler);
 
   /** Emitted when a tool is clicked */
   readonly toolSelected = output<string>();
 
   /** Currently hovered tool ID */
   readonly hoveredTool = signal<string | null>(null);
+
+  /** Whether merge button should be shown (2+ holds selected in EditHolds mode) */
+  readonly showMergeButton = computed(() => {
+    return this.modeStore.isEditHoldsMode() && this.editHoldState.selectedHoldIds().size >= 2;
+  });
+
+  /** Count of selected holds for merge button label */
+  readonly selectedHoldCount = computed(() => this.editHoldState.selectedHoldIds().size);
 
   /** Tool definitions */
   readonly tools: ToolItem[] = [
@@ -129,5 +141,12 @@ export class EditorToolbarComponent implements OnInit {
    */
   getAnimationDelay(index: number): string {
     return `${index * 30}ms`;
+  }
+
+  /**
+   * Handle merge button click
+   */
+  onMergeClick(): void {
+    this.interactionHandler.mergeSelectedHolds();
   }
 }

@@ -22,6 +22,7 @@ import {
  * - POST   /peaked/walls/{wallId}/versions/{versionId}/holds       - Create hold
  * - PUT    /peaked/walls/{wallId}/versions/{versionId}/holds/{id}  - Update hold position
  * - DELETE /peaked/walls/{wallId}/versions/{versionId}/holds/{id}  - Delete hold
+ * - POST   /peaked/walls/{wallId}/versions/{versionId}/holds/merge - Merge multiple holds
  */
 @Injectable({ providedIn: 'root' })
 export class HoldApi {
@@ -66,5 +67,21 @@ export class HoldApi {
    */
   deleteHold(wallId: number, versionId: number, holdId: number): Observable<DeleteResponse> {
     return this.http.delete<DeleteResponse>(`${this.baseUrl(wallId, versionId)}/${holdId}`);
+  }
+
+  /**
+   * Merge multiple holds into one
+   * @param strategy - 'average' creates new hold at average position, 'master' keeps first hold
+   */
+  mergeHolds(
+    wallId: number,
+    versionId: number,
+    holdIds: number[],
+    strategy: 'average' | 'master'
+  ): Observable<HoldResponse> {
+    return this.http.post<HoldResponse>(`${this.baseUrl(wallId, versionId)}/merge`, {
+      hold_ids: holdIds,
+      strategy: strategy,
+    });
   }
 }

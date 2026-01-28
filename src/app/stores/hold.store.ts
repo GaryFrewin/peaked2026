@@ -187,6 +187,47 @@ export class HoldStore {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // MERGE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Merge multiple holds into one
+   * Optimistically removes old holds and adds new merged hold from API response
+   */
+  mergeHolds(
+    wallId: number,
+    versionId: number,
+    holdIds: number[],
+    strategy: 'average' | 'master'
+  ): void {
+    if (holdIds.length < 2) {
+      this.error.set('Need at least 2 holds to merge');
+      return;
+    }
+
+    // Capture holds for rollback
+    const holdsToMerge = this.holds().filter((h) => holdIds.includes(h.id));
+
+    // Optimistically remove the holds being merged
+    this.holds.update((current) => current.filter((h) => !holdIds.includes(h.id)));
+    this.error.set(null);
+
+    this.api.mergeHolds(wallId, versionId, holdIds, strategy).subscribe({
+      next: (response) => {
+        // Clear selection (merged holds no longer exist)
+        this.editHoldState.selectedHoldIds.set(new Set());
+        // Add the new merged hold
+        this.holds.update((current) => [...current, response.data]);
+      },
+      error: (err) => {
+        // Rollback: restore the original holds
+        this.holds.update((current) => [...current, ...holdsToMerge]);
+        this.error.set(`Failed to merge holds: ${err.statusText || err.message}`);
+      },
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // CLEAR
   // ═══════════════════════════════════════════════════════════════════════════
 

@@ -49,6 +49,7 @@ describe('HoldStore', () => {
       'createHold',
       'updateHold',
       'deleteHold',
+      'mergeHolds',
     ]);
 
     TestBed.configureTestingModule({
@@ -284,6 +285,135 @@ describe('HoldStore', () => {
       expect(store.holds()).toEqual([]);
       expect(store.isLoading()).toBe(false);
       expect(store.error()).toBeNull();
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MERGE HOLDS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe('mergeHolds', () => {
+    const mockHold3: Hold = {
+      id: 3,
+      wall_version_id: 2,
+      x: 2,
+      y: 2,
+      z: 0.2,
+      usage_count: 1,
+      date_created: '2026-01-01T00:00:00Z',
+      date_modified: '2026-01-01T00:00:00Z',
+    };
+    
+    const mergedHold: Hold = {
+      id: 100,
+      wall_version_id: 2,
+      x: 0.5, // Average of hold1 and hold2
+      y: 1.25,
+      z: 0.05,
+      usage_count: 8, // Sum of usage counts
+      date_created: '2026-01-27T00:00:00Z',
+      date_modified: '2026-01-27T00:00:00Z',
+    };
+
+    beforeEach(() => {
+      // Pre-load holds
+      mockApi.loadHolds.and.returnValue(of({
+        data: [mockHold1, mockHold2, mockHold3],
+        message: 'Success',
+        success: true,
+      }));
+      store.loadHolds(String(mockWallId), String(mockVersionId));
+    });
+
+    it('should reject merge with less than 2 holds', () => {
+      store.mergeHolds(mockWallId, mockVersionId, [1], 'average');
+
+      expect(mockApi.mergeHolds).not.toHaveBeenCalled();
+      expect(store.error()).toBe('Need at least 2 holds to merge');
+    });
+
+    it('should optimistically remove merged holds immediately', () => {
+      const subject = new Subject<HoldResponse>();
+      mockApi.mergeHolds.and.returnValue(subject.asObservable());
+
+      // Verify initial state: 3 holds
+      expect(store.holds().length).toBe(3);
+      expect(store.holds().map(h => h.id)).toEqual([1, 2, 3]);
+
+      // Merge holds 1 and 2
+      store.mergeHolds(mockWallId, mockVersionId, [1, 2], 'average');
+
+      // Holds 1 and 2 should be removed immediately (optimistic)
+      expect(store.holds().length).toBe(1);
+      expect(store.holds().map(h => h.id)).toEqual([3]);
+      expect(store.holds().find(h => h.id === 1)).toBeUndefined();
+      expect(store.holds().find(h => h.id === 2)).toBeUndefined();
+    });
+
+    it('should add merged hold when API responds', () => {
+      mockApi.mergeHolds.and.returnValue(of({
+        data: mergedHold,
+        message: 'Merged successfully',
+        success: true,
+      }));
+
+      // Merge holds 1 and 2
+      store.mergeHolds(mockWallId, mockVersionId, [1, 2], 'average');
+
+      // Should have hold 3 and the new merged hold
+      expect(store.holds().length).toBe(2);
+      expect(store.holds().map(h => h.id)).toContain(3);
+      expect(store.holds().map(h => h.id)).toContain(100);
+      expect(store.holds().find(h => h.id === 100)).toEqual(mergedHold);
+    });
+
+    it('should clear error on successful merge', () => {
+      mockApi.mergeHolds.and.returnValue(of({
+        data: mergedHold,
+        message: 'Merged',
+        success: true,
+      }));
+
+      store.mergeHolds(mockWallId, mockVersionId, [1, 2], 'average');
+
+      expect(store.error()).toBeNull();
+    });
+
+    it('should rollback on API failure', () => {
+      mockApi.mergeHolds.and.returnValue(throwError(() => ({
+        statusText: 'Server Error',
+        message: 'Merge failed',
+      })));
+
+      // Verify initial state
+      expect(store.holds().length).toBe(3);
+
+      // Attempt merge
+      store.mergeHolds(mockWallId, mockVersionId, [1, 2], 'average');
+
+      // Should restore original holds after error
+      expect(store.holds().length).toBe(3);
+      expect(store.holds().map(h => h.id)).toEqual([3, 1, 2]); // Order may differ due to rollback
+      expect(store.holds().find(h => h.id === 1)).toBeTruthy();
+      expect(store.holds().find(h => h.id === 2)).toBeTruthy();
+      expect(store.error()).toContain('Failed to merge holds');
+    });
+
+    it('should call API with correct parameters', () => {
+      mockApi.mergeHolds.and.returnValue(of({
+        data: mergedHold,
+        message: 'Merged',
+        success: true,
+      }));
+
+      store.mergeHolds(mockWallId, mockVersionId, [1, 2], 'master');
+
+      expect(mockApi.mergeHolds).toHaveBeenCalledWith(
+        mockWallId,
+        mockVersionId,
+        [1, 2],
+        'master'
+      );
     });
   });
 });
