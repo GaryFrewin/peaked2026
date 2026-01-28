@@ -108,8 +108,8 @@ export function registerDesktopInteractionManager(): void {
 
       this.log('holdClicked', eventData);
 
-      // TODO: Emit to InteractionBus
-      // window.peakedBus?.emitHoldClicked(holdId);
+      // Emit to InteractionBus
+      (window as any).peakedBus?.emitHoldClicked(holdId);
     },
 
     handleHoldHover: function (target: HTMLElement, entered: boolean) {
@@ -124,10 +124,10 @@ export function registerDesktopInteractionManager(): void {
 
       if (entered) {
         this.log('holdHovered', eventData);
-        // TODO: window.peakedBus?.emitHoldHovered(holdId);
+        (window as any).peakedBus?.emitHoldHovered(holdId);
       } else {
         this.log('holdUnhovered', eventData);
-        // TODO: window.peakedBus?.emitHoldUnhovered(holdId);
+        (window as any).peakedBus?.emitHoldUnhovered(holdId);
       }
     },
 
@@ -143,7 +143,7 @@ export function registerDesktopInteractionManager(): void {
       // Only log if we have a point (meaningful click location)
       if (point) {
         this.log('wallClicked', eventData);
-        // TODO: window.peakedBus?.emitWallClicked(point);
+        (window as any).peakedBus?.emitWallClicked(eventData.point);
       } else {
         this.log('wallClicked (no intersection point)', eventData);
       }
