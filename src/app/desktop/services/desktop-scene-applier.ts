@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BaseSceneComponent } from '../../shared/components/base-scene/base-scene';
+import { registerDesktopInteractionManager } from '../../vr/behaviours/desktop-interaction-manager';
 
 /**
  * DESKTOP SCENE APPLIER
@@ -30,6 +31,9 @@ export class DesktopSceneApplier {
    * This enables mouse event capture (click, hover, drag) on holds and walls.
    */
   private attachInteractionManager(scene: BaseSceneComponent): void {
+    // Ensure component is registered BEFORE trying to attach it
+    registerDesktopInteractionManager();
+    
     const wallEnvironment = scene.sceneElement.nativeElement.querySelector('#wall-environment');
     if (wallEnvironment) {
       wallEnvironment.setAttribute('desktop-interaction-manager', '');
@@ -44,16 +48,14 @@ export class DesktopSceneApplier {
    * Enables mouseenter/mouseleave events on interactable entities.
    */
   private attachMouseCursor(scene: BaseSceneComponent): void {
-    const sceneEl = scene.sceneElement.nativeElement.querySelector('a-scene');
-    if (sceneEl) {
-      const mouseCursor = document.createElement('a-entity');
-      mouseCursor.setAttribute('id', 'mouseCursor');
-      mouseCursor.setAttribute('cursor', 'rayOrigin: mouse; fuse: false');
-      mouseCursor.setAttribute('raycaster', 'objects: .interactable, .hold, .wall; far: 100');
-      sceneEl.appendChild(mouseCursor);
-      console.log('Mouse cursor attached for desktop raycasting');
-    } else {
-      console.warn('a-scene not found for mouse cursor');
-    }
+    // scene.sceneElement.nativeElement IS the <a-scene> element
+    const sceneEl = scene.sceneElement.nativeElement;
+    
+    const mouseCursor = document.createElement('a-entity');
+    mouseCursor.setAttribute('id', 'mouseCursor');
+    mouseCursor.setAttribute('cursor', 'rayOrigin: mouse; fuse: false');
+    mouseCursor.setAttribute('raycaster', 'objects: .interactable, .hold, .wall; far: 100');
+    sceneEl.appendChild(mouseCursor);
+    console.log('Mouse cursor attached for raycasting');
   }
 }
