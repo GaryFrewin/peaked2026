@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, output, signal } from '@angular/core';
+import { ModeStore, AppMode } from '../../../stores/mode.store';
 
 /**
  * Tool item definition for the toolbar
  */
 export interface ToolItem {
   id: string;
+  mode?: AppMode; // If set, clicking this tool changes mode
   icon: string;
   label: string;
   shortcut?: string;
@@ -32,6 +34,8 @@ export interface ToolItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditorToolbarComponent implements OnInit {
+  private readonly modeStore = inject(ModeStore);
+
   /** Emitted when a tool is clicked */
   readonly toolSelected = output<string>();
 
@@ -42,12 +46,14 @@ export class EditorToolbarComponent implements OnInit {
   readonly tools: ToolItem[] = [
     {
       id: 'view',
+      mode: AppMode.View,
       icon: '👁️',
       label: 'View Mode',
       shortcut: 'Esc',
     },
     {
       id: 'editHolds',
+      mode: AppMode.EditHolds,
       icon: '📍',
       label: 'Edit Holds',
       shortcut: 'H',
@@ -55,12 +61,14 @@ export class EditorToolbarComponent implements OnInit {
     },
     {
       id: 'createRoute',
+      mode: AppMode.CreateRoute,
       icon: '➕',
       label: 'New Route',
       shortcut: 'N',
     },
     {
       id: 'editRoute',
+      mode: AppMode.EditRoute,
       icon: '✏️',
       label: 'Edit Route',
       shortcut: 'E',
@@ -93,10 +101,23 @@ export class EditorToolbarComponent implements OnInit {
   }
 
   onToolClick(tool: ToolItem): void {
+    if (tool.disabled) return;
 
+    // If tool has a mode, switch to it
+    if (tool.mode !== undefined) {
+      this.modeStore.setMode(tool.mode);
+    }
+
+    // Always emit the tool selection
+    this.toolSelected.emit(tool.id);
   }
 
-  isActive(toolId: string): void {
+  isActive(toolId: string): boolean {
+    const tool = this.tools.find(t => t.id === toolId);
+    if (tool?.mode !== undefined) {
+      return this.modeStore.mode() === tool.mode;
+    }
+    return false;
   }
 
   isHovered(toolId: string): boolean {

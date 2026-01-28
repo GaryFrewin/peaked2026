@@ -4,7 +4,7 @@ import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
-import { EditorToolbarComponent } from '../../../shared/components/editor-toolbar/editor-toolbar.component';
+import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
 
 @Component({
   selector: 'app-wall-viewer',
