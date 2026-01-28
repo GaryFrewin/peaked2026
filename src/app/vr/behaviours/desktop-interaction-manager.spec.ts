@@ -94,15 +94,23 @@ describe('desktop-interaction-manager', () => {
       );
     });
 
-    it('should register pointerdown event listener', () => {
+    it('should register mousedown event listener', () => {
       expect(mockElement.addEventListener).toHaveBeenCalledWith(
-        'pointerdown',
+        'mousedown',
         jasmine.any(Function)
       );
     });
-    it('should register pointerup event listener', () => {
+
+    it('should register mouseup event listener', () => {
       expect(mockElement.addEventListener).toHaveBeenCalledWith(
-        'pointerup',
+        'mouseup',
+        jasmine.any(Function)
+      );
+    });
+
+    it('should register mousemove event listener', () => {
+      expect(mockElement.addEventListener).toHaveBeenCalledWith(
+        'mousemove',
         jasmine.any(Function)
       );
     });
@@ -122,58 +130,180 @@ describe('desktop-interaction-manager', () => {
     });
 
     describe('hold click handling', () => {
-      it('should log holdClicked when a hold is clicked (pointerdown/up, no drag)', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+      let mockPeakedBus: any;
+
+      beforeEach(() => {
+        // Mock the peakedBus
+        mockPeakedBus = {
+          emitHoldClicked: jasmine.createSpy('emitHoldClicked'),
+          emitHoldDragStarted: jasmine.createSpy('emitHoldDragStarted'),
+          emitHoldDragUpdated: jasmine.createSpy('emitHoldDragUpdated'),
+          emitHoldDragEnded: jasmine.createSpy('emitHoldDragEnded'),
+          emitHoldHovered: jasmine.createSpy('emitHoldHovered'),
+          emitHoldUnhovered: jasmine.createSpy('emitHoldUnhovered'),
+        };
+        (window as any).peakedBus = mockPeakedBus;
+      });
+
+      afterEach(() => {
+        delete (window as any).peakedBus;
+      });
+
+      it('should log holdClicked when a hold is clicked (mousedown/up, no drag)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockHoldElement = {
           classList: { contains: (cls: string) => cls === 'hold' },
           getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
         };
-        const pointerDownEvent = { target: mockHoldElement, clientX: 100, clientY: 100 };
-        const pointerUpEvent = { target: mockHoldElement, clientX: 100, clientY: 100, detail: { intersection: { point: { x: 1, y: 2, z: 3 } } } };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0, point: { x: 1, y: 2, z: 3 } } } 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         expect(consoleSpy).toHaveBeenCalledWith(
           '[desktop-interaction-manager] holdClicked',
           jasmine.objectContaining({ holdId: 42 })
         );
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledWith(42);
       });
-      it('should NOT log holdClicked if pointer moves more than threshold (drag)', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+
+      it('should NOT log holdClicked if intersection distance changes (drag)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockHoldElement = {
           classList: { contains: (cls: string) => cls === 'hold' },
           getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
         };
-        const pointerDownEvent = { target: mockHoldElement, clientX: 100, clientY: 100 };
-        const pointerUpEvent = { target: mockHoldElement, clientX: 120, clientY: 120, detail: { intersection: { point: { x: 1, y: 2, z: 3 } } } };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.5, point: { x: 1, y: 2, z: 3 } } } 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         const interactionCalls = consoleSpy.calls.all().filter(
           call => call.args[0]?.includes?.('holdClicked')
         );
         expect(interactionCalls.length).toBe(0);
+        expect(mockPeakedBus.emitHoldClicked).not.toHaveBeenCalled();
       });
+
       it('should extract intersection point from click event', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockHoldElement = {
           classList: { contains: (cls: string) => cls === 'hold' },
-          getAttribute: (attr: string) => attr === 'data-hold-id' ? '99' : null,
+          getAttribute: (attr: string) => {
+            if (attr === 'data-hold-id') return '99';
+            if (attr === 'position') return { x: 1, y: 2, z: 3 };
+            return null;
+          },
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
         };
-        const pointerDownEvent = { target: mockHoldElement, clientX: 50, clientY: 50 };
-        const pointerUpEvent = { target: mockHoldElement, clientX: 50, clientY: 50, detail: { intersection: { point: { x: 5.5, y: 3.2, z: 1.1 } } } };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 3.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 3.0, point: { x: 5.5, y: 3.2, z: 1.1 } } } 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
-        const logCall = consoleSpy.calls.mostRecent();
-        expect(logCall.args[1].intersection).toEqual({ x: 5.5, y: 3.2, z: 1.1 });
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
+        const logCall = consoleSpy.calls.all().find(
+          call => call.args[0]?.includes?.('holdClicked')
+        );
+        expect(logCall?.args[1].intersection).toEqual({ x: 5.5, y: 3.2, z: 1.1 });
+      });
+
+      it('should NOT create hold when dragging from hold to wall (different targets)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mockWallElement = {
+          id: 'garage',
+          classList: { contains: (cls: string) => cls === 'wall' },
+          getAttribute: () => null,
+        };
+
+        // Mouse down on hold
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        // Mouse up on wall with different distance (drag detected)
+        const mouseUpEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 6.5, point: { x: 1, y: 2, z: 3 } } } 
+        };
+
+        consoleSpy.calls.reset();
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
+        // Should NOT emit hold clicked or wall clicked
+        expect(mockPeakedBus.emitHoldClicked).not.toHaveBeenCalled();
+        
+        const holdClickCalls = consoleSpy.calls.all().filter(
+          call => call.args[0]?.includes?.('holdClicked')
+        );
+        const wallClickCalls = consoleSpy.calls.all().filter(
+          call => call.args[0]?.includes?.('wallClicked')
+        );
+        
+        expect(holdClickCalls.length).toBe(0);
+        expect(wallClickCalls.length).toBe(0);
       });
     });
 
     describe('hold hover handling', () => {
+      let mockPeakedBus: any;
+
+      beforeEach(() => {
+        mockPeakedBus = {
+          emitHoldHovered: jasmine.createSpy('emitHoldHovered'),
+          emitHoldUnhovered: jasmine.createSpy('emitHoldUnhovered'),
+        };
+        (window as any).peakedBus = mockPeakedBus;
+      });
+
+      afterEach(() => {
+        delete (window as any).peakedBus;
+      });
+
       it('should log holdHovered on mouseenter', () => {
         const enterHandler = eventListeners.get('mouseenter')!;
         
@@ -189,6 +319,7 @@ describe('desktop-interaction-manager', () => {
           '[desktop-interaction-manager] holdHovered',
           jasmine.objectContaining({ holdId: 77 })
         );
+        expect(mockPeakedBus.emitHoldHovered).toHaveBeenCalledWith(77);
       });
 
       it('should log holdUnhovered on mouseleave', () => {
@@ -206,23 +337,294 @@ describe('desktop-interaction-manager', () => {
           '[desktop-interaction-manager] holdUnhovered',
           jasmine.objectContaining({ holdId: 77 })
         );
+        expect(mockPeakedBus.emitHoldUnhovered).toHaveBeenCalledWith(77);
+      });
+    });
+
+    describe('hold drag handling', () => {
+      let mockPeakedBus: any;
+      jasmine.clock();
+
+      beforeEach(() => {
+        jasmine.clock().install();
+        
+        mockPeakedBus = {
+          emitHoldDragStarted: jasmine.createSpy('emitHoldDragStarted'),
+          emitHoldDragUpdated: jasmine.createSpy('emitHoldDragUpdated'),
+          emitHoldDragEnded: jasmine.createSpy('emitHoldDragEnded'),
+          emitHoldClicked: jasmine.createSpy('emitHoldClicked'),
+        };
+        (window as any).peakedBus = mockPeakedBus;
+      });
+
+      afterEach(() => {
+        jasmine.clock().uninstall();
+        delete (window as any).peakedBus;
+      });
+
+      it('should start drag after 500ms hold on a hold element', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        consoleSpy.calls.reset();
+        mouseDownHandler(mouseDownEvent);
+
+        // After 499ms, drag should not have started
+        jasmine.clock().tick(499);
+        expect(mockPeakedBus.emitHoldDragStarted).not.toHaveBeenCalled();
+
+        // After 500ms, drag should start
+        jasmine.clock().tick(1);
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[desktop-interaction-manager] holdDragStarted',
+          jasmine.objectContaining({ holdId: 42 })
+        );
+        expect(mockPeakedBus.emitHoldDragStarted).toHaveBeenCalledWith(42);
+      });
+
+      it('should emit drag update events during mousemove while dragging', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseMoveHandler = eventListeners.get('mousemove')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        mouseDownHandler(mouseDownEvent);
+        jasmine.clock().tick(500); // Start drag
+
+        const mouseMoveEvent = {
+          target: mockHoldElement,
+          detail: { 
+            intersection: { 
+              point: { x: 1.5, y: 2.5, z: 3.5 } 
+            } 
+          }
+        };
+
+        consoleSpy.calls.reset();
+        mouseMoveHandler(mouseMoveEvent);
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[desktop-interaction-manager] holdDragUpdated',
+          jasmine.objectContaining({ 
+            holdId: 42,
+            point: { x: 1.5, y: 2.5, z: 3.5 }
+          })
+        );
+        expect(mockPeakedBus.emitHoldDragUpdated).toHaveBeenCalledWith(
+          42, 
+          { x: 1.5, y: 2.5, z: 3.5 }
+        );
+      });
+
+      it('should NOT emit drag updates if not dragging', () => {
+        const mouseMoveHandler = eventListeners.get('mousemove')!;
+        
+        const mouseMoveEvent = {
+          target: {},
+          detail: { 
+            intersection: { 
+              point: { x: 1.5, y: 2.5, z: 3.5 } 
+            } 
+          }
+        };
+
+        consoleSpy.calls.reset();
+        mouseMoveHandler(mouseMoveEvent);
+
+        const dragUpdateCalls = consoleSpy.calls.all().filter(
+          call => call.args[0]?.includes?.('holdDragUpdated')
+        );
+        expect(dragUpdateCalls.length).toBe(0);
+        expect(mockPeakedBus.emitHoldDragUpdated).not.toHaveBeenCalled();
+      });
+
+      it('should emit drag ended on mouseup after dragging', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        mouseDownHandler(mouseDownEvent);
+        jasmine.clock().tick(500); // Start drag
+
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } } 
+        };
+
+        consoleSpy.calls.reset();
+        mouseUpHandler(mouseUpEvent);
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[desktop-interaction-manager] holdDragEnded',
+          jasmine.objectContaining({ holdId: 42 })
+        );
+        expect(mockPeakedBus.emitHoldDragEnded).toHaveBeenCalledWith(42);
+      });
+
+      it('should NOT emit click event if drag was active', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        mouseDownHandler(mouseDownEvent);
+        jasmine.clock().tick(500); // Start drag
+
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } } 
+        };
+
+        consoleSpy.calls.reset();
+        mouseUpHandler(mouseUpEvent);
+
+        // Should not emit click
+        expect(mockPeakedBus.emitHoldClicked).not.toHaveBeenCalled();
+        const clickCalls = consoleSpy.calls.all().filter(
+          call => call.args[0]?.includes?.('holdClicked')
+        );
+        expect(clickCalls.length).toBe(0);
+      });
+
+      it('should cancel drag timer on mouseleave', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseLeaveHandler = eventListeners.get('mouseleave')!;
+        
+        // Add emitHoldUnhovered to the mock bus
+        mockPeakedBus.emitHoldUnhovered = jasmine.createSpy('emitHoldUnhovered');
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        mouseDownHandler(mouseDownEvent);
+        jasmine.clock().tick(300); // Partway through
+
+        mouseLeaveHandler({ target: mockHoldElement });
+
+        // Complete the 500ms
+        jasmine.clock().tick(200);
+
+        // Should NOT have started drag
+        expect(mockPeakedBus.emitHoldDragStarted).not.toHaveBeenCalled();
+      });
+
+      it('should cancel drag timer on mouseup before 500ms', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
+        const mockHoldElement = {
+          classList: { contains: (cls: string) => cls === 'hold' },
+          getAttribute: (attr: string) => attr === 'data-hold-id' ? '42' : null,
+          closest: (selector: string) => selector === '.hold' ? mockHoldElement : null,
+        };
+
+        const mouseDownEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } }
+        };
+
+        mouseDownHandler(mouseDownEvent);
+        jasmine.clock().tick(300); // Partway through
+
+        const mouseUpEvent = { 
+          target: mockHoldElement,
+          detail: { intersection: { distance: 5.0 } } 
+        };
+
+        mouseUpHandler(mouseUpEvent);
+
+        // Complete the 500ms
+        jasmine.clock().tick(200);
+
+        // Should NOT have started drag, should have clicked
+        expect(mockPeakedBus.emitHoldDragStarted).not.toHaveBeenCalled();
+        expect(mockPeakedBus.emitHoldClicked).toHaveBeenCalledWith(42);
       });
     });
 
     describe('wall click handling', () => {
-      it('should log wallClicked with intersection point (pointerdown/up, no drag)', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+      let mockPeakedBus: any;
+
+      beforeEach(() => {
+        mockPeakedBus = {
+          emitWallClicked: jasmine.createSpy('emitWallClicked'),
+        };
+        (window as any).peakedBus = mockPeakedBus;
+      });
+
+      afterEach(() => {
+        delete (window as any).peakedBus;
+      });
+
+      it('should log wallClicked with intersection point (mousedown/up, no drag)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockWallElement = {
           id: 'garage',
           classList: { contains: (cls: string) => cls === 'wall' },
           getAttribute: () => null,
         };
-        const pointerDownEvent = { target: mockWallElement, clientX: 10, clientY: 10 };
-        const pointerUpEvent = { target: mockWallElement, clientX: 10, clientY: 10, detail: { intersection: { point: { x: 0.5, y: 1.2, z: 0.1 } } } };
+
+        const mouseDownEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 2.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 2.0, point: { x: 0.5, y: 1.2, z: 0.1 } } } 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         expect(consoleSpy).toHaveBeenCalledWith(
           '[desktop-interaction-manager] wallClicked',
           jasmine.objectContaining({
@@ -230,56 +632,93 @@ describe('desktop-interaction-manager', () => {
             entityId: 'garage',
           })
         );
+        expect(mockPeakedBus.emitWallClicked).toHaveBeenCalledWith({ x: 0.5, y: 1.2, z: 0.1 });
       });
-      it('should handle wall click without intersection point (pointerdown/up, no drag)', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+
+      it('should handle wall click without intersection point (mousedown/up, no drag)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockWallElement = {
           id: 'garage',
           classList: { contains: (cls: string) => cls === 'wall' },
           getAttribute: () => null,
         };
-        const pointerDownEvent = { target: mockWallElement, clientX: 10, clientY: 10 };
-        const pointerUpEvent = { target: mockWallElement, clientX: 10, clientY: 10, detail: {} };
+
+        const mouseDownEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 2.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockWallElement,
+          detail: {} 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         expect(consoleSpy).toHaveBeenCalledWith(
           '[desktop-interaction-manager] wallClicked (no intersection point)',
           jasmine.objectContaining({ point: null })
         );
+        expect(mockPeakedBus.emitWallClicked).not.toHaveBeenCalled();
       });
-      it('should NOT log wallClicked if pointer moves more than threshold (drag)', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+
+      it('should NOT log wallClicked if intersection distance changes (drag)', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockWallElement = {
           id: 'garage',
           classList: { contains: (cls: string) => cls === 'wall' },
           getAttribute: () => null,
         };
-        const pointerDownEvent = { target: mockWallElement, clientX: 10, clientY: 10 };
-        const pointerUpEvent = { target: mockWallElement, clientX: 30, clientY: 30, detail: { intersection: { point: { x: 0.5, y: 1.2, z: 0.1 } } } };
+
+        const mouseDownEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 2.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockWallElement,
+          detail: { intersection: { distance: 3.0, point: { x: 0.5, y: 1.2, z: 0.1 } } } 
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler(pointerDownEvent);
-        pointerUpHandler(pointerUpEvent);
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         const interactionCalls = consoleSpy.calls.all().filter(
           call => call.args[0]?.includes?.('wallClicked')
         );
         expect(interactionCalls.length).toBe(0);
+        expect(mockPeakedBus.emitWallClicked).not.toHaveBeenCalled();
       });
     });
 
     describe('event filtering', () => {
-      it('should ignore pointer events on elements without recognized classes', () => {
-        const pointerDownHandler = eventListeners.get('pointerdown')!;
-        const pointerUpHandler = eventListeners.get('pointerup')!;
+      it('should ignore mouse events on elements without recognized classes', () => {
+        const mouseDownHandler = eventListeners.get('mousedown')!;
+        const mouseUpHandler = eventListeners.get('mouseup')!;
+        
         const mockRandomElement = {
           classList: { contains: () => false },
           getAttribute: () => null,
         };
+
+        const mouseDownEvent = { 
+          target: mockRandomElement,
+          detail: { intersection: { distance: 1.0 } }
+        };
+        const mouseUpEvent = { 
+          target: mockRandomElement,
+          detail: { intersection: { distance: 1.0 } }
+        };
+
         consoleSpy.calls.reset();
-        pointerDownHandler({ target: mockRandomElement, clientX: 0, clientY: 0 });
-        pointerUpHandler({ target: mockRandomElement, clientX: 0, clientY: 0 });
+        mouseDownHandler(mouseDownEvent);
+        mouseUpHandler(mouseUpEvent);
+
         // Should not log holdClicked or wallClicked
         const interactionCalls = consoleSpy.calls.all().filter(
           call => call.args[0]?.includes?.('holdClicked') || 
@@ -292,12 +731,17 @@ describe('desktop-interaction-manager', () => {
     describe('cleanup', () => {
       it('should remove event listeners on remove', () => {
         componentInstance.remove();
+
         expect(mockElement.removeEventListener).toHaveBeenCalledWith(
-          'pointerdown',
+          'mousedown',
           jasmine.any(Function)
         );
         expect(mockElement.removeEventListener).toHaveBeenCalledWith(
-          'pointerup',
+          'mouseup',
+          jasmine.any(Function)
+        );
+        expect(mockElement.removeEventListener).toHaveBeenCalledWith(
+          'mousemove',
           jasmine.any(Function)
         );
         expect(mockElement.removeEventListener).toHaveBeenCalledWith(

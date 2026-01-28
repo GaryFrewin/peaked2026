@@ -48,16 +48,20 @@ export function registerDesktopInteractionManager(): void {
       this.pointerDownDistance = null;
       this.pointerDownTarget = null;
       this.threshold = 0.001; 
+      this.holdPressTimerId = null;
+      this.pressState = null;
 
       // Bind handlers
       this.onMouseDown = this.onMouseDown.bind(this);
       this.onMouseUp = this.onMouseUp.bind(this);
+      this.onMouseMove = this.onMouseMove.bind(this);
       this.onMouseEnter = this.onMouseEnter.bind(this);
       this.onMouseLeave = this.onMouseLeave.bind(this);
 
       // Listen for mouse events for click-vs-drag
       this.el.addEventListener('mousedown', this.onMouseDown);
       this.el.addEventListener('mouseup', this.onMouseUp);
+      this.el.addEventListener('mousemove', this.onMouseMove);
       this.el.addEventListener('mouseenter', this.onMouseEnter);
       this.el.addEventListener('mouseleave', this.onMouseLeave);
     },
@@ -65,33 +69,63 @@ export function registerDesktopInteractionManager(): void {
     remove: function () {
       this.el.removeEventListener('mousedown', this.onMouseDown);
       this.el.removeEventListener('mouseup', this.onMouseUp);
+      this.el.removeEventListener('mousemove', this.onMouseMove);
       this.el.removeEventListener('mouseenter', this.onMouseEnter);
       this.el.removeEventListener('mouseleave', this.onMouseLeave);
     },
 
 
     onMouseDown: function (event: any) {
-      console.log('[desktop-interaction-manager] Mouse down event:', event.detail.intersection);
-      this.pointerDownDistance = event.detail.intersection.distance;
+      const intersection = event.detail?.intersection;
+      console.log('[desktop-interaction-manager] Mouse down event:', intersection);
+      if (intersection) {
+        this.pointerDownDistance = intersection.distance;
+      }
       this.pointerDownTarget = event.target;
+
+      const holdTarget = this.getHoldTarget(event);
+      if (!holdTarget) return;
+
+      const holdId = this.getHoldId(holdTarget);
+      if (holdId === null) return;
+
+      this.clearHoldPressTimer();
+      this.pressState = {
+        target: holdTarget,
+        holdId,
+        dragging: false,
+      };
+
+      // if mouse down on hold for 500ms, we want to initialise dragging
+      // - emit an event to the InteractionBus to start dragging
+      this.holdPressTimerId = window.setTimeout(() => {
+        if (!this.pressState || this.pressState.target !== holdTarget) return;
+        this.pressState.dragging = true;
+        this.log('holdDragStarted', { holdId });
+        (window as any).peakedBus?.emitHoldDragStarted?.(holdId);
+      }, 500);
     },
 
     onMouseUp: function (event: any) {
-      console.log('[desktop-interaction-manager] Mouse up event:', event.detail.intersection);
+      const intersection = event.detail?.intersection;
+      console.log('[desktop-interaction-manager] Mouse up event:', intersection);
       if (this.pointerDownDistance === null) return;
-      const delta = event.detail.intersection.distance - this.pointerDownDistance;
+      const delta = intersection ? intersection.distance - this.pointerDownDistance : 0;
       const target = event.target;
 
-      const hasDragged  = (
-        delta != 0 &&
-        target === this.pointerDownTarget
-      )
+      const hasDragged = delta !== 0;
       console.log('[desktop-interaction-manager] has dragged:', hasDragged, 'delta:', delta);
 
+      if (this.pressState?.dragging) {
+        const holdId = this.pressState.holdId;
+        this.log('holdDragEnded', { holdId });
+        (window as any).peakedBus?.emitHoldDragEnded?.(holdId);
+      }
 
       // Only treat as click if movement is within threshold, and same target
       if (
-        !hasDragged
+        !hasDragged &&
+        !this.pressState?.dragging
       ) {
         // Check what was clicked
         if (target.classList.contains('hold')) {
@@ -102,6 +136,21 @@ export function registerDesktopInteractionManager(): void {
       }
       this.pointerDownDistance = null;
       this.pointerDownTarget = null;
+      this.clearHoldPressTimer();
+      this.pressState = null;
+    },
+
+    onMouseMove: function (event: any) {
+      if (!this.pressState?.dragging) return;
+
+      const intersection = event.detail?.intersection;
+      if (!intersection) return;
+
+      const point = intersection.point;
+      if (!point) return;
+
+      this.log('holdDragUpdated', { holdId: this.pressState.holdId, point });
+      (window as any).peakedBus?.emitHoldDragUpdated?.(this.pressState.holdId, point);
     },
 
     onMouseEnter: function (event: any) {
@@ -120,6 +169,7 @@ export function registerDesktopInteractionManager(): void {
       if (target.classList.contains('hold')) {
         this.handleHoldHover(target, false);
       }
+      this.clearHoldPressTimer();
     },
 
     handleHoldClick: function (target: HTMLElement, event: any) {
@@ -196,6 +246,27 @@ export function registerDesktopInteractionManager(): void {
       }
 
       return null;
+    },
+
+    getHoldTarget: function (event: any): HTMLElement | null {
+      const target = event.target as HTMLElement | null;
+      if (!target) return null;
+      if (target.classList?.contains('hold')) return target;
+      return target.closest?.('.hold') || null;
+    },
+
+    getHoldId: function (target: HTMLElement): number | null {
+      const holdIdStr = target.getAttribute('data-hold-id');
+      const holdId = holdIdStr ? parseInt(holdIdStr, 10) : null;
+      if (holdId === null || isNaN(holdId)) return null;
+      return holdId;
+    },
+
+    clearHoldPressTimer: function () {
+      if (this.holdPressTimerId !== null) {
+        clearTimeout(this.holdPressTimerId);
+        this.holdPressTimerId = null;
+      }
     },
 
     log: function (message: string, data?: any) {
