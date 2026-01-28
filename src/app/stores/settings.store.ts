@@ -32,6 +32,9 @@ export class SettingsStore {
   /** Wall opacity - 0 = fully transparent (default for occlusion to work), 1 = fully opaque */
   readonly wallOpacity = signal<number>(0);
 
+  /** Whether non-route holds are visible */
+  readonly holdsVisible = signal<boolean>(true);
+
   // ========== ACTIONS ==========
 
   setSkybox(path: string): void {
@@ -53,5 +56,9 @@ export class SettingsStore {
   setWallOpacity(opacity: number): void {
     // Clamp between 0 and 1
     this.wallOpacity.set(Math.max(0, Math.min(1, opacity)));
+  }
+
+  setHoldsVisible(visible: boolean): void {
+    this.holdsVisible.set(visible);
   }
 }

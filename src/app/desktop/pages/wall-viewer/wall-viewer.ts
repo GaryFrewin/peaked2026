@@ -5,6 +5,7 @@ import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
 import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
+import { DesktopSettingsApplier } from '../../../shared/services/settings/desktop-settings-applier';
 
 @Component({
   selector: 'app-wall-viewer',
@@ -20,6 +21,7 @@ export class WallViewerComponent implements OnInit {
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
+  private readonly settingsApplier = inject(DesktopSettingsApplier);
 
   private readonly sceneReady = signal(false);
 
@@ -75,5 +77,8 @@ export class WallViewerComponent implements OnInit {
   onSceneReady(): void {
     console.log('Desktop scene ready - setting sceneReady signal');
     this.sceneReady.set(true);
+    
+    // Attach settings applier to manage scene settings reactively
+    this.settingsApplier.attachTo(this.baseScene);
   }
 }

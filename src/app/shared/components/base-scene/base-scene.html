@@ -6,7 +6,6 @@
   <!-- Dark sky for desktop mode - hide in AR or when skybox is None for full passthrough -->
   <a-sky 
     color="#222"
-    [attr.visible]="settingsStore.selectedSkyboxPath() !== ''"
   ></a-sky>
 
   <!-- Wall Environment with calibrated anchor -->
@@ -23,7 +22,6 @@
         id="wall-container"
         class="wall interactable"
         [attr.gltf-model]="'url(' + wallModelUrl() + ')'"
-        [attr.wall-opacity]="'opacity: ' + settingsStore.wallOpacity()"
         position="0 0 0"
       ></a-entity>
     }

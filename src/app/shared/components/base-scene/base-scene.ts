@@ -22,7 +22,6 @@ import { InteractionBus } from '../../services/interaction/interaction-bus';
 
 import { Hold } from '../../../data-contracts/hold.model';
 import { RouteStore } from '../../../stores/route.store';
-import { SettingsStore } from '../../../stores/settings.store';
 import { Route, RouteHold } from '../../../data-contracts/route.model';
 
 /**
@@ -69,7 +68,6 @@ export class BaseSceneComponent implements AfterViewInit {
   @ViewChild('holdsContainer', { static: false }) holdsContainerRef!: ElementRef<HTMLElement>;
 
   private readonly routeStore = inject(RouteStore);
-  protected readonly settingsStore = inject(SettingsStore);
   
   // Inject InteractionBus to ensure it's instantiated and registered on window.peakedBus
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
