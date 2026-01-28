@@ -169,7 +169,12 @@ export function registerDesktopInteractionManager(): void {
       if (target.classList.contains('hold')) {
         this.handleHoldHover(target, false);
       }
-      this.clearHoldPressTimer();
+      
+      // Don't cancel the hold press timer if we're in the middle of a potential drag
+      // (mouse button is still down). The timer should continue so dragging can start.
+      if (this.pointerDownDistance === null) {
+        this.clearHoldPressTimer();
+      }
     },
 
     handleHoldClick: function (target: HTMLElement, event: any) {

@@ -15,8 +15,13 @@ AFRAME.registerComponent('drag-hold', {
   schema: {},
 
   init(): void {
-    this.onRaycasterIntersection = this.onRaycasterIntersection.bind(this);
     this.originalMaterial = this.el.getAttribute('material') || {};
+    this.loggedNoRaycaster = false;
+    this.loggedNoIntersections = false;
+    this.loggedNoWall = false;
+    this.hasLoggedUpdate = false;
+    
+    console.log('[drag-hold] init for hold', this.el.getAttribute('data-hold-id'));
     
     // Apply visual feedback - make it glow during drag
     this.el.setAttribute('material', {
@@ -26,26 +31,45 @@ AFRAME.registerComponent('drag-hold', {
     });
 
     // Get the mouse cursor entity (has the raycaster)
-    this.cursor = document.querySelector('#mouse-cursor');
+    this.cursor = document.querySelector('#mouseCursor');
     
     if (this.cursor) {
-      // Listen to raycaster intersection events
-      this.cursor.addEventListener('raycaster-intersection', this.onRaycasterIntersection);
+      console.log('[drag-hold] Found mouseCursor, will poll raycaster in tick()');
+      // Get the raycaster component reference
+      this.raycaster = this.cursor.components.raycaster;
+      if (this.raycaster) {
+        console.log('[drag-hold] Raycaster component found');
+      } else {
+        console.warn('[drag-hold] Raycaster component NOT found on mouseCursor');
+      }
     } else {
-      console.warn('drag-hold: mouse-cursor entity not found');
+      console.warn('drag-hold: mouseCursor entity not found');
     }
   },
 
   /**
-   * Handle raycaster intersection events from the mouse cursor.
-   * Updates this hold's position to the intersection point on the wall.
+   * Called on every frame. Poll the raycaster for current intersections and update position.
    */
-  onRaycasterIntersection(event: CustomEvent): void {
-    const intersections = event.detail.intersections;
-    
-    if (!intersections || intersections.length === 0) {
+  tick(): void {
+    if (!this.raycaster) {
+      if (!this.loggedNoRaycaster) {
+        console.warn('[drag-hold] tick: no raycaster component');
+        this.loggedNoRaycaster = true;
+      }
       return;
     }
+
+    const intersections = this.raycaster.intersections;
+    if (!intersections || intersections.length === 0) {
+      if (!this.loggedNoIntersections) {
+        console.log('[drag-hold] tick: no intersections');
+        this.loggedNoIntersections = true;
+      }
+      return;
+    }
+
+    // Reset the flag when we have intersections
+    this.loggedNoIntersections = false;
 
     // Find intersection with the wall (not other holds)
     const wallIntersection = intersections.find((intersection: any) => {
@@ -54,11 +78,24 @@ AFRAME.registerComponent('drag-hold', {
     });
 
     if (!wallIntersection) {
+      if (!this.loggedNoWall) {
+        console.log('[drag-hold] tick: no wall intersection, intersections:', intersections.length);
+        this.loggedNoWall = true;
+      }
       return;
     }
 
+    // Reset the flag when we find a wall
+    this.loggedNoWall = false;
+
     // Update hold position to intersection point
     const point = wallIntersection.point;
+    
+    if (!this.hasLoggedUpdate) {
+      console.log('[drag-hold] tick: updating position to', point);
+      this.hasLoggedUpdate = true;
+    }
+    
     this.el.setAttribute('position', {
       x: point.x,
       y: point.y,
@@ -67,12 +104,8 @@ AFRAME.registerComponent('drag-hold', {
   },
 
   remove(): void {
+    console.log('[drag-hold] remove called');
     // Restore original material
     this.el.setAttribute('material', this.originalMaterial);
-
-    // Clean up event listener
-    if (this.cursor) {
-      this.cursor.removeEventListener('raycaster-intersection', this.onRaycasterIntersection);
-    }
   }
 });
