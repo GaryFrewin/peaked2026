@@ -44,33 +44,64 @@ export function registerDesktopInteractionManager(): void {
     init: function () {
       this.log('Initializing desktop-interaction-manager');
 
+      // Click-vs-drag logic state
+      this.pointerDownDistance = null;
+      this.pointerDownTarget = null;
+      this.threshold = 0.001; 
+
       // Bind handlers
-      this.onClick = this.onClick.bind(this);
+      this.onMouseDown = this.onMouseDown.bind(this);
+      this.onMouseUp = this.onMouseUp.bind(this);
       this.onMouseEnter = this.onMouseEnter.bind(this);
       this.onMouseLeave = this.onMouseLeave.bind(this);
 
-      // Use event delegation - listen at this container level
-      this.el.addEventListener('click', this.onClick);
+      // Listen for mouse events for click-vs-drag
+      this.el.addEventListener('mousedown', this.onMouseDown);
+      this.el.addEventListener('mouseup', this.onMouseUp);
       this.el.addEventListener('mouseenter', this.onMouseEnter);
       this.el.addEventListener('mouseleave', this.onMouseLeave);
     },
 
     remove: function () {
-      this.el.removeEventListener('click', this.onClick);
+      this.el.removeEventListener('mousedown', this.onMouseDown);
+      this.el.removeEventListener('mouseup', this.onMouseUp);
       this.el.removeEventListener('mouseenter', this.onMouseEnter);
       this.el.removeEventListener('mouseleave', this.onMouseLeave);
     },
 
-    onClick: function (event: any) {
-      const target = event.target;
-      if (!target) return;
 
-      // Check what was clicked
-      if (target.classList.contains('hold')) {
-        this.handleHoldClick(target, event);
-      } else if (target.classList.contains('wall')) {
-        this.handleWallClick(target, event);
+    onMouseDown: function (event: any) {
+      console.log('[desktop-interaction-manager] Mouse down event:', event.detail.intersection);
+      this.pointerDownDistance = event.detail.intersection.distance;
+      this.pointerDownTarget = event.target;
+    },
+
+    onMouseUp: function (event: any) {
+      console.log('[desktop-interaction-manager] Mouse up event:', event.detail.intersection);
+      if (this.pointerDownDistance === null) return;
+      const delta = event.detail.intersection.distance - this.pointerDownDistance;
+      const target = event.target;
+
+      const hasDragged  = (
+        delta != 0 &&
+        target === this.pointerDownTarget
+      )
+      console.log('[desktop-interaction-manager] has dragged:', hasDragged, 'delta:', delta);
+
+
+      // Only treat as click if movement is within threshold, and same target
+      if (
+        !hasDragged
+      ) {
+        // Check what was clicked
+        if (target.classList.contains('hold')) {
+          this.handleHoldClick(target, event);
+        } else if (target.classList.contains('wall')) {
+          this.handleWallClick(target, event);
+        }
       }
+      this.pointerDownDistance = null;
+      this.pointerDownTarget = null;
     },
 
     onMouseEnter: function (event: any) {
