@@ -21,7 +21,7 @@
  */
 
 import { effect, runInInjectionContext } from '@angular/core';
-import type { EditHoldStateStore } from '../../stores/edit-hold-state.store';
+import type { EditHoldStateStore } from '../../../stores/edit-hold-state.store';
 
 // Use global AFRAME without redeclaring
 const _AF = typeof AFRAME !== 'undefined' ? AFRAME : (window as any).AFRAME;
@@ -47,7 +47,7 @@ if (_AF) {
       }
 
       // Import EditHoldStateStore dynamically to avoid circular dependency
-      import('../../stores/edit-hold-state.store').then(({ EditHoldStateStore }) => {
+      import('../../../stores/edit-hold-state.store').then(({ EditHoldStateStore }) => {
         // Run effect inside Angular's injection context
         runInInjectionContext(injector, () => {
           // Get EditHoldStateStore

@@ -7,6 +7,7 @@ import { SettingsStore } from '../../../stores/settings.store';
 import { VrRouteListComponent } from '../../components/vr-route-list/vr-route-list';
 import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
 import { VrSettingsApplier } from '../../services/vr-settings-applier';
+import { VrSceneApplier } from '../../services/vr-scene-applier';
 
 // Register A-Frame behaviours
 import '../../behaviours';
@@ -28,6 +29,7 @@ export class VrClimbingComponent implements OnInit {
   protected readonly routeStore = inject(RouteStore);
   protected readonly settingsStore = inject(SettingsStore);
   private readonly settingsApplier = inject(VrSettingsApplier);
+  private readonly sceneApplier = inject(VrSceneApplier);
 
   private readonly sceneReady = signal(false);
 
@@ -68,6 +70,9 @@ export class VrClimbingComponent implements OnInit {
   onSceneReady(): void {
     console.log('VR scene ready');
     this.sceneReady.set(true);
+    
+    // VrSceneApplier: Creates camera rig, controllers, and hand tracking entities
+    this.sceneApplier.attachTo(this.baseScene);
     
     // VrSettingsApplier: Reactively applies user settings (holds visibility, wall opacity)
     // to A-Frame scene whenever settings change in the store

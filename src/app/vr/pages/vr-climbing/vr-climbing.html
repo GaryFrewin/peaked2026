@@ -4,15 +4,6 @@
   [visible]="true"
   (sceneReady)="onSceneReady()"
 >
-  <!-- VR camera rig with controllers -->
-  <div slot="camera">
-    <a-entity id="cameraRig" position-tracker>
-      <a-camera id="player"></a-camera>
-      <a-entity id="leftController" laser-controls="hand: left" raycaster="objects: .interactable"></a-entity>
-      <a-entity id="rightController" laser-controls="hand: right" raycaster="objects: .interactable, .hold"></a-entity>
-    </a-entity>
-  </div>
-
   <!-- VR-specific: Skybox (GLTF model) -->
   <a-entity 
     slot="environment"

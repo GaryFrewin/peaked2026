@@ -24,12 +24,12 @@ import { WallStore } from '../../../stores/wall.store';
 
 // Register A-Frame components
 import { registerVrButtonComponent } from '../../behaviours/vr-button';
-import { registerMarkerPlacerComponent } from '../../behaviours/marker-placer';
-import { registerWallManipulatorComponent } from '../../behaviours/wall-manipulator';
-import { registerSurfaceCursorComponent } from '../../behaviours/surface-cursor';
-import { registerTriangleAlignComponent } from '../../behaviours/triangle-align';
-import { registerWireframeRevealBehaviour } from '../../behaviours/wireframe-reveal/wireframe-reveal';
-import { registerCalibratedAnchorComponent } from '../../behaviours/calibrated-anchor';
+import { registerMarkerPlacerComponent } from '../../behaviours/calibration/marker-placer';
+import { registerWallManipulatorComponent } from '../../behaviours/calibration/wall-manipulator';
+import { registerSurfaceCursorComponent } from '../../behaviours/calibration/surface-cursor';
+import { registerTriangleAlignComponent } from '../../behaviours/calibration/triangle-align';
+import { registerWireframeRevealBehaviour } from '../../../shared/aframe-components/behaviours/wireframe-reveal/wireframe-reveal';
+import { registerCalibratedAnchorComponent } from '../../behaviours/calibration/calibrated-anchor';
 
 // Register on module load
 registerVrButtonComponent();

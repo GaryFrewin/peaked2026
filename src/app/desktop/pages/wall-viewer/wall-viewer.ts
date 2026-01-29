@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, s
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 
 // Import A-Frame behaviors (registration handled in DesktopSceneApplier when scene ready)
-import '../../../vr/behaviours/wave-animator';
-import '../../../vr/behaviours/hold-pulser';
-import '../../../vr/behaviours/mode-hold-colorizer';
+import '../../../shared/aframe-components/behaviours/wave-animator';
+import '../../../shared/aframe-components/behaviours/hold-pulser';
+import '../../../shared/aframe-components/behaviours/mode-hold-colorizer';
 
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';

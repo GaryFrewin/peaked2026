@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BaseSceneComponent } from '../../shared/components/base-scene/base-scene';
-import { registerDesktopInteractionManager } from '../../vr/behaviours/desktop-interaction-manager';
+import { registerDesktopInteractionManager } from '../aframe-components/behaviours/desktop-interaction-manager';
 
 /**
  * DESKTOP SCENE APPLIER

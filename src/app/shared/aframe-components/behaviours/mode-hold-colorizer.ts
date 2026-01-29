@@ -16,7 +16,7 @@
  */
 
 import { effect, runInInjectionContext } from '@angular/core';
-import type { ModeStore, AppMode } from '../../stores/mode.store';
+import type { ModeStore, AppMode } from '../../../stores/mode.store';
 
 // Use global AFRAME without redeclaring
 const _AF = typeof AFRAME !== 'undefined' ? AFRAME : (window as any).AFRAME;
@@ -39,7 +39,7 @@ if (_AF) {
       }
 
       // Import ModeStore dynamically to avoid circular dependency
-      import('../../stores/mode.store').then(({ ModeStore, AppMode }) => {
+      import('../../../stores/mode.store').then(({ ModeStore, AppMode }) => {
         // Run effect inside Angular's injection context
         runInInjectionContext(injector, () => {
           // Get ModeStore
