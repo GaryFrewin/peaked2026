@@ -4,13 +4,9 @@
   [visible]="true"
   (sceneReady)="onSceneReady()"
 >
+
   <!-- Desktop-specific: 2D overlay for route drawing -->
   <div slot="overlay" class="scene-overlay">
-    <!-- Route Annotations (only in route modes) -->
-    @if (modeStore.isRouteMode()) {
-      <app-route-annotations />
-    }
-
     <div class="overlay-header">
       @if (wallStore.isLoading() || holdStore.isLoading()) {
         <span>Loading...</span>
@@ -40,6 +36,9 @@
     }
 
     <!-- Editor Toolbar -->
-    <app-editor-toolbar (toolSelected)="onToolSelected($event)" />
+    <app-editor-toolbar 
+      [canSave]="canSave()" 
+      (toolSelected)="onToolSelected($event)" 
+    />
   </div>
 </app-base-scene>

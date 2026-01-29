@@ -28,9 +28,10 @@
       <button
         class="tool-button"
         [class.active]="isActive(tool.id)"
-        [class.disabled]="tool.disabled"
+        [class.disabled]="tool.disabled || isDisabled(tool.id)"
         [attr.aria-pressed]="isActive(tool.id)"
         [attr.aria-label]="tool.label"
+        [attr.aria-disabled]="isDisabled(tool.id)"
         (mouseenter)="onToolHover(tool.id)"
         (mouseleave)="onToolHover(null)"
         (click)="onToolClick(tool)"

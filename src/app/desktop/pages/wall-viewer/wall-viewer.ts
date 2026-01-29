@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 
 // Import A-Frame behaviors (registration handled in DesktopSceneApplier when scene ready)
@@ -10,35 +10,55 @@ import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { ModeStore, AppMode } from '../../../stores/mode.store';
+import { CreateRouteStateStore } from '../../../stores/create-route-state.store';
 import { RouteListComponent } from '../../components/route-list/route-list';
 import { RouteCreationPanelComponent } from '../../components/route-creation-panel/route-creation-panel';
 import { EditorToolbarComponent } from '../../components/editor-toolbar/editor-toolbar.component';
 import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
-import { RouteAnnotationsComponent } from '../../../shared/components/route-annotations/route-annotations';
 import { DesktopSettingsApplier } from '../../services/desktop-settings-applier';
 import { DesktopSceneApplier } from '../../services/desktop-scene-applier';
 
 @Component({
   selector: 'app-wall-viewer',
   standalone: true,
-  imports: [BaseSceneComponent, RouteListComponent, RouteCreationPanelComponent, EditorToolbarComponent, SettingsPanelComponent, RouteAnnotationsComponent],
+  imports: [BaseSceneComponent, RouteListComponent, RouteCreationPanelComponent, EditorToolbarComponent, SettingsPanelComponent],
   templateUrl: './wall-viewer.html',
   styleUrl: './wall-viewer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class WallViewerComponent implements OnInit {
   @ViewChild(BaseSceneComponent) baseScene!: BaseSceneComponent;
+  @ViewChild(RouteCreationPanelComponent) routeCreationPanel?: RouteCreationPanelComponent;
   
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
   protected readonly modeStore = inject(ModeStore);
+  protected readonly createRouteState = inject(CreateRouteStateStore);
   protected readonly AppMode = AppMode;
   private readonly settingsApplier = inject(DesktopSettingsApplier);
   private readonly sceneApplier = inject(DesktopSceneApplier);
 
   private readonly sceneReady = signal(false);
   protected readonly settingsOpen = signal(false);
+
+  /** 
+   * Whether save is enabled for toolbar.
+   * In CreateRoute mode, this checks the draft route has a name and at least 2 holds.
+   */
+  protected readonly canSave = computed(() => {
+    const mode = this.modeStore.mode();
+    
+    if (mode === AppMode.CreateRoute) {
+      // Check draft route has at least 2 holds
+      // (name validation happens in the panel)
+      const draft = this.createRouteState.draftRoute();
+      return draft !== null && draft.route_holds.length >= 2;
+    }
+    
+    return false;
+  });
 
   constructor() {
     // Effect to auto-select first wall when walls load AND scene is ready
@@ -105,7 +125,26 @@ export class WallViewerComponent implements OnInit {
   onToolSelected(toolId: string): void {
     if (toolId === 'settings') {
       this.settingsOpen.update(open => !open);
+    } else if (toolId === 'save') {
+      this.handleSave();
     }
     // Other tool actions (merge, etc.) are handled by InteractionHandler via InteractionBus
+  }
+
+  /**
+   * Handle save action based on current mode
+   */
+  private handleSave(): void {
+    const mode = this.modeStore.mode();
+
+    if (mode === AppMode.CreateRoute) {
+      // Trigger save on the route creation panel
+      if (this.routeCreationPanel) {
+        this.routeCreationPanel.save();
+      }
+    } else if (mode === AppMode.EditRoute) {
+      // TODO: Implement edit route save
+      console.log('Edit route save not yet implemented');
+    }
   }
 }

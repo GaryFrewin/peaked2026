@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import { ModeStore, AppMode } from '../../../stores/mode.store';
 import { EditHoldStateStore } from '../../../stores/edit-hold-state.store';
+import { CreateRouteStateStore } from '../../../stores/create-route-state.store';
 import { InteractionHandler } from '../../../shared/services/interaction/interaction-handler';
 
 /**
@@ -38,7 +39,11 @@ export interface ToolItem {
 export class EditorToolbarComponent implements OnInit {
   private readonly modeStore = inject(ModeStore);
   private readonly editHoldState = inject(EditHoldStateStore);
+  private readonly createRouteState = inject(CreateRouteStateStore);
   private readonly interactionHandler = inject(InteractionHandler);
+
+  /** External signal indicating if save is allowed (e.g., form validation) */
+  readonly canSave = input(false);
 
   /** Emitted when a tool is clicked */
   readonly toolSelected = output<string>();
@@ -53,6 +58,21 @@ export class EditorToolbarComponent implements OnInit {
 
   /** Count of selected holds for merge button label */
   readonly selectedHoldCount = computed(() => this.editHoldState.selectedHoldIds().size);
+
+  /** Whether save button is enabled based on current mode and state */
+  readonly isSaveEnabled = computed(() => {
+    const mode = this.modeStore.mode();
+    
+    // Save is only enabled in CreateRoute or EditRoute modes
+    if (mode === AppMode.CreateRoute) {
+      return this.canSave();
+    }
+    if (mode === AppMode.EditRoute) {
+      // TODO: Add edit route validation
+      return false;
+    }
+    return false;
+  });
 
   /** Tool definitions */
   readonly tools: ToolItem[] = [
@@ -113,7 +133,7 @@ export class EditorToolbarComponent implements OnInit {
   }
 
   onToolClick(tool: ToolItem): void {
-    if (tool.disabled) return;
+    if (tool.disabled || this.isDisabled(tool.id)) return;
 
     // If tool has a mode, switch to it
     if (tool.mode !== undefined) {
@@ -134,6 +154,17 @@ export class EditorToolbarComponent implements OnInit {
 
   isHovered(toolId: string): boolean {
     return this.hoveredTool() === toolId;
+  }
+
+  /**
+   * Check if a tool is disabled
+   */
+  isDisabled(toolId: string): boolean {
+    if (toolId === 'save') {
+      return !this.isSaveEnabled();
+    }
+    // Add other tool-specific disabled logic here
+    return false;
   }
 
   /**
