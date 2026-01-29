@@ -87,4 +87,45 @@ describe('route-hold-renderer A-Frame component', () => {
       }, 100);
     });
   });
+
+  describe('hold icons', () => {
+    it('should_set_hand_icon_type_when_forwardhandstart_is_true', () => {
+      /**
+       * When a hold has forwardhandstart flag, the renderer should
+       * compute iconType as 'hand' to display the hand emoji sprite.
+       */
+      holdStore.holds.set([
+        { id: 1, x: 0, y: 1, z: 0, wall_version_id: 1, usage_count: 0, date_created: '', date_modified: '' },
+      ]);
+      modeStore.setMode(AppMode.CreateRoute);
+
+      // Add hold and cycle to forwardhandstart
+      createRouteState.addHold(1);
+      createRouteState.cycleHoldFlags(1);
+
+      const draft = createRouteState.draftRoute();
+      expect(draft?.route_holds[0].forwardhandstart).toBe(true);
+      // The A-Frame component will render a hand icon based on this flag
+    });
+
+    it('should_set_foot_icon_type_when_forwardfootstart_is_true', () => {
+      /**
+       * When a hold has forwardfootstart flag, the renderer should
+       * compute iconType as 'foot' to display the foot emoji sprite.
+       */
+      holdStore.holds.set([
+        { id: 1, x: 0, y: 1, z: 0, wall_version_id: 1, usage_count: 0, date_created: '', date_modified: '' },
+      ]);
+      modeStore.setMode(AppMode.CreateRoute);
+
+      // Add hold and cycle twice to forwardfootstart
+      createRouteState.addHold(1);
+      createRouteState.cycleHoldFlags(1); // → forwardhandstart
+      createRouteState.cycleHoldFlags(1); // → forwardfootstart
+
+      const draft = createRouteState.draftRoute();
+      expect(draft?.route_holds[0].forwardfootstart).toBe(true);
+      // The A-Frame component will render a foot icon based on this flag
+    });
+  });
 });

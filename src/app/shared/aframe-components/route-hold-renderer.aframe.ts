@@ -25,6 +25,11 @@ const COLORS = {
   REGULAR: '#FFFFFF', // White
 };
 
+const ICON_PATHS = {
+  HAND: 'assets/images/icon-hand.svg',
+  FOOT: 'assets/images/icon-foot.svg',
+};
+
 interface RenderedRouteHold {
   holdId: number;
   x: number;
@@ -32,6 +37,7 @@ interface RenderedRouteHold {
   z: number;
   color: string;
   routeId: number;
+  iconType?: 'hand' | 'foot' | null; // Icon to display above hold
 }
 
 AFRAME.registerComponent('route-hold-renderer', {
@@ -40,6 +46,7 @@ AFRAME.registerComponent('route-hold-renderer', {
   init: function () {
     // Store reference to child entities for cleanup
     this.holdEntities = new Map<number, any>();
+    this.iconEntities = new Map<number, any>();
 
     // Get Angular services from the global app injector
     const injector = (window as any).__appInjector;
@@ -124,6 +131,8 @@ AFRAME.registerComponent('route-hold-renderer', {
       if (!hold) return;
 
       // Determine color based on flags
+      const isHandStart = routeHold.forwardhandstart || routeHold.reversehandstart;
+      const isFootStart = routeHold.forwardfootstart || routeHold.reversefootstart;
       const isStart = routeHold.forwardhandstart || routeHold.forwardfootstart;
       const isEnd = routeHold.reversehandstart || routeHold.reversefootstart;
 
@@ -136,6 +145,14 @@ AFRAME.registerComponent('route-hold-renderer', {
         color = COLORS.END;
       }
 
+      // Determine icon type (hand vs foot)
+      let iconType: 'hand' | 'foot' | null = null;
+      if (isHandStart) {
+        iconType = 'hand';
+      } else if (isFootStart) {
+        iconType = 'foot';
+      }
+
       currentHolds.push({
         holdId: hold.id,
         x: hold.x,
@@ -143,6 +160,7 @@ AFRAME.registerComponent('route-hold-renderer', {
         z: hold.z,
         color: color,
         routeId: 0, // Draft route has no ID yet
+        iconType: iconType,
       });
     });
 
@@ -205,6 +223,14 @@ AFRAME.registerComponent('route-hold-renderer', {
       }
     });
 
+    // Remove icons for holds no longer in route
+    this.iconEntities.forEach((entity: any, holdId: number) => {
+      if (!currentHoldIds.has(holdId)) {
+        this.el.removeChild(entity);
+        this.iconEntities.delete(holdId);
+      }
+    });
+
     // Add or update holds
     holds.forEach((hold) => {
       let entity = this.holdEntities.get(hold.holdId);
@@ -224,7 +250,42 @@ AFRAME.registerComponent('route-hold-renderer', {
         'material',
         `color: ${hold.color}; shader: flat; emissive: ${hold.color}; emissiveIntensity: 1.2; opacity: 0.95; transparent: true`
       );
+
+      // Handle icon - only show for start/end holds with hand/foot flag
+      this.updateHoldIcon(hold);
     });
+  },
+
+  updateHoldIcon: function (hold: RenderedRouteHold) {
+    let iconEntity = this.iconEntities.get(hold.holdId);
+
+    if (!hold.iconType) {
+      // No icon needed - remove if exists
+      if (iconEntity) {
+        this.el.removeChild(iconEntity);
+        this.iconEntities.delete(hold.holdId);
+      }
+      return;
+    }
+
+    const iconSrc = hold.iconType === 'hand' ? ICON_PATHS.HAND : ICON_PATHS.FOOT;
+
+    if (!iconEntity) {
+      // Create new icon entity
+      iconEntity = document.createElement('a-image');
+      iconEntity.setAttribute('class', 'hold-icon');
+      iconEntity.setAttribute('width', '0.08');
+      iconEntity.setAttribute('height', '0.08');
+      iconEntity.setAttribute('look-at', '[camera]'); // Billboard to face camera
+      iconEntity.setAttribute('material', 'alphaTest: 0.5; transparent: true');
+      this.el.appendChild(iconEntity);
+      this.iconEntities.set(hold.holdId, iconEntity);
+    }
+
+    // Update icon position (slightly above the hold sphere)
+    const iconY = hold.y + 0.12;
+    iconEntity.setAttribute('position', `${hold.x} ${iconY} ${hold.z}`);
+    iconEntity.setAttribute('src', iconSrc);
   },
 
   clearAllHolds: function () {
@@ -232,6 +293,11 @@ AFRAME.registerComponent('route-hold-renderer', {
       this.el.removeChild(entity);
     });
     this.holdEntities.clear();
+
+    this.iconEntities.forEach((entity: any) => {
+      this.el.removeChild(entity);
+    });
+    this.iconEntities.clear();
   },
 
   remove: function () {
