@@ -21,9 +21,13 @@ if (typeof AFRAME !== 'undefined') {
       this.el.addEventListener('model-loaded', () => {
         this.applyOpacity();
       });
+      
+      // Also try immediately in case model is already loaded
+      this.applyOpacity();
     },
 
     update() {
+      // Apply opacity whenever the attribute changes
       this.applyOpacity();
     },
 

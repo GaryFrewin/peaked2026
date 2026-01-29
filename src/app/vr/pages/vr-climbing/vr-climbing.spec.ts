@@ -5,6 +5,7 @@ import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { RouteStore } from '../../../stores/route.store';
 import { SettingsStore } from '../../../stores/settings.store';
+import { VrSettingsApplier } from '../../services/vr-settings-applier';
 
 describe('VrClimbingComponent', () => {
   let component: VrClimbingComponent;
@@ -38,8 +39,16 @@ describe('VrClimbingComponent', () => {
       skyboxOptions: [],
       selectedSkyboxPath: signal(''),
       occludeSkybox: signal(true),
+      holdsVisible: signal(true),
+      wallOpacity: signal(0),
       setSkybox: jasmine.createSpy('setSkybox'),
       setOccludeSkybox: jasmine.createSpy('setOccludeSkybox'),
+      setHoldsVisible: jasmine.createSpy('setHoldsVisible'),
+      setWallOpacity: jasmine.createSpy('setWallOpacity'),
+    };
+
+    const mockVrSettingsApplier = {
+      attachTo: jasmine.createSpy('attachTo'),
     };
 
     await TestBed.configureTestingModule({
@@ -49,6 +58,7 @@ describe('VrClimbingComponent', () => {
         { provide: HoldStore, useValue: mockHoldStore },
         { provide: RouteStore, useValue: mockRouteStore },
         { provide: SettingsStore, useValue: mockSettingsStore },
+        { provide: VrSettingsApplier, useValue: mockVrSettingsApplier },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();

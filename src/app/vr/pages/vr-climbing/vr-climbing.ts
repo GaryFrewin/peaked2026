@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { BaseSceneComponent } from '../../../shared/components/base-scene/base-scene';
 import { WallStore } from '../../../stores/wall.store';
 import { HoldStore } from '../../../stores/hold.store';
@@ -6,6 +6,7 @@ import { RouteStore } from '../../../stores/route.store';
 import { SettingsStore } from '../../../stores/settings.store';
 import { VrRouteListComponent } from '../../components/vr-route-list/vr-route-list';
 import { SettingsPanelComponent } from '../../../shared/components/settings-panel/settings-panel.component';
+import { VrSettingsApplier } from '../../services/vr-settings-applier';
 
 // Register A-Frame behaviours
 import '../../behaviours';
@@ -20,10 +21,13 @@ import '../../behaviours';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class VrClimbingComponent implements OnInit {
+  @ViewChild(BaseSceneComponent) baseScene!: BaseSceneComponent;
+  
   protected readonly wallStore = inject(WallStore);
   protected readonly holdStore = inject(HoldStore);
   protected readonly routeStore = inject(RouteStore);
   protected readonly settingsStore = inject(SettingsStore);
+  private readonly settingsApplier = inject(VrSettingsApplier);
 
   private readonly sceneReady = signal(false);
 
@@ -64,6 +68,10 @@ export class VrClimbingComponent implements OnInit {
   onSceneReady(): void {
     console.log('VR scene ready');
     this.sceneReady.set(true);
+    
+    // VrSettingsApplier: Reactively applies user settings (holds visibility, wall opacity)
+    // to A-Frame scene whenever settings change in the store
+    this.settingsApplier.attachTo(this.baseScene);
   }
 }
 

@@ -33,7 +33,7 @@ export class SettingsStore {
   readonly wallOpacity = signal<number>(0);
 
   /** Whether non-route holds are visible */
-  readonly holdsVisible = signal<boolean>(true);
+  readonly holdsVisible = signal<boolean>(false);
 
   // ========== ACTIONS ==========
 

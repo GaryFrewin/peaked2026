@@ -1,11 +1,13 @@
 <a-scene 
   #scene
+  background="transparent: true"
   xr-mode-ui="XRMode: ar;"
   webxr="optionalFeatures: anchors,local-floor,bounded-floor,hand-tracking;"
 >
-  <!-- Dark sky for desktop mode - hide in AR or when skybox is None for full passthrough -->
+  <!-- Default sky - hidden in AR for passthrough, visible on desktop -->
   <a-sky 
-    color="#222"
+    color="#1a1a2e"
+    hide-on-enter-ar
   ></a-sky>
 
   <!-- Wall Environment with calibrated anchor -->

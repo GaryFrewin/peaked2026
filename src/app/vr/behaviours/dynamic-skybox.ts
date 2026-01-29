@@ -36,6 +36,15 @@ if (typeof AFRAME !== 'undefined') {
         console.log('[dynamic-skybox] Loading skybox:', path);
         // GLTF models need url() wrapper for A-Frame to load them
         this.el.setAttribute('gltf-model', `url(${path})`);
+        
+        // Listen for load events to confirm success
+        this.el.addEventListener('model-loaded', () => {
+          console.log('[dynamic-skybox] ✓ Skybox loaded successfully:', path);
+        }, { once: true });
+        
+        this.el.addEventListener('model-error', (evt: any) => {
+          console.error('[dynamic-skybox] ✗ Failed to load skybox:', path, evt.detail);
+        }, { once: true });
       } else {
         console.log('[dynamic-skybox] Removing skybox (no path)');
         this.el.removeAttribute('gltf-model');
