@@ -58,6 +58,9 @@
 
   <!-- Extension point: environment (sky, lights, etc) -->
   <ng-content select="[slot=environment]" />
+
+  <!-- Extension point: camera rig (desktop vs VR have different setups) -->
+  <ng-content select="[slot=camera]" />
 </a-scene>
 
 <!-- 2D overlay slot for desktop features -->

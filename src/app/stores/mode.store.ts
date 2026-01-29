@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { EditHoldStateStore } from './edit-hold-state.store';
+import { CreateRouteStateStore } from './create-route-state.store';
 
 /**
  * Application modes for the climbing wall viewer/editor
@@ -25,6 +26,7 @@ export enum AppMode {
 @Injectable({ providedIn: 'root' })
 export class ModeStore {
   private readonly editHoldState = inject(EditHoldStateStore);
+  private readonly createRouteState = inject(CreateRouteStateStore);
 
   /** Current application mode */
   readonly mode = signal<AppMode>(AppMode.View);
@@ -43,6 +45,7 @@ export class ModeStore {
   /**
    * Change to a new mode
    * Clears EditHoldStateStore when leaving EditHolds mode
+   * Clears CreateRouteStateStore when leaving CreateRoute mode
    */
   setMode(mode: AppMode): void {
     const previousMode = this.mode();
@@ -51,6 +54,11 @@ export class ModeStore {
     // Clear edit hold state when leaving EditHolds mode
     if (previousMode === AppMode.EditHolds && mode !== AppMode.EditHolds) {
       this.editHoldState.clear();
+    }
+
+    // Clear create route state when leaving CreateRoute mode
+    if (previousMode === AppMode.CreateRoute && mode !== AppMode.CreateRoute) {
+      this.createRouteState.clear();
     }
   }
 

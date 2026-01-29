@@ -45,6 +45,15 @@ export class BaseSceneComponent implements AfterViewInit {
       'loaded',
       () => {
         this.sceneReady.emit();
+        
+        // Prevent context menu on the A-Frame canvas
+        const canvas = scene.querySelector('canvas');
+        if (canvas) {
+          canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }, { capture: true });
+        }
       },
       { once: true }
     );

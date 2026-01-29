@@ -80,6 +80,7 @@ export class DesktopSettingsApplier {
   /**
    * Apply mode-specific visual effects
    * - EditHolds: trigger wave animation, then start pulse
+   * - CreateRoute/EditRoute: trigger wave animation only
    */
   private setupModeEffects(scene: BaseSceneComponent): void {
     effect(() => {
@@ -95,6 +96,9 @@ export class DesktopSettingsApplier {
         setTimeout(() => {
           container.dispatchEvent(new Event('start-pulse'));
         }, 800);
+      } else if (mode === AppMode.CreateRoute || mode === AppMode.EditRoute) {
+        // Entering route edit mode - trigger wave only (no pulse)
+        container.dispatchEvent(new Event('trigger-wave'));
       } else {
         // Leaving edit mode - stop everything
         container.dispatchEvent(new Event('stop-wave'));

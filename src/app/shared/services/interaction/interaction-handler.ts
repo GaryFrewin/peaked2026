@@ -5,6 +5,7 @@ import { ModeStore, AppMode } from '../../../stores/mode.store';
 import { HoldStore } from '../../../stores/hold.store';
 import { WallStore } from '../../../stores/wall.store';
 import { EditHoldStateStore } from '../../../stores/edit-hold-state.store';
+import { CreateRouteStateStore } from '../../../stores/create-route-state.store';
 
 /**
  * INTERACTION HANDLER
@@ -21,6 +22,7 @@ export class InteractionHandler implements OnDestroy {
   private readonly holdStore = inject(HoldStore); 
   private readonly wallStore = inject(WallStore);
   private readonly editHoldState = inject(EditHoldStateStore);
+  private readonly createRouteState = inject(CreateRouteStateStore);
 
   constructor() {
     this.subscriptions.add(
@@ -28,6 +30,9 @@ export class InteractionHandler implements OnDestroy {
     );
     this.subscriptions.add(
       this.bus.holdDoubleClicked$.subscribe(holdId => this.onHoldDoubleClicked(holdId))
+    );
+    this.subscriptions.add(
+      this.bus.holdRightClicked$.subscribe(holdId => this.onHoldRightClicked(holdId))
     );
     this.subscriptions.add(
       this.bus.wallClicked$.subscribe(point => this.onWallClicked(point))
@@ -95,7 +100,15 @@ export class InteractionHandler implements OnDestroy {
 
       case AppMode.CreateRoute:
         console.log('[CreateRoute] Hold clicked:', holdId);
-        // TODO: Add/remove hold from RouteInProgress.holds[]
+        // Toggle hold in/out of draft route
+        const draft = this.createRouteState.draftRoute();
+        const isInRoute = draft?.route_holds.some(rh => rh.hold_id === holdId);
+        
+        if (isInRoute) {
+          this.createRouteState.removeHold(holdId);
+        } else {
+          this.createRouteState.addHold(holdId);
+        }
         break;
 
       case AppMode.EditRoute:
@@ -132,6 +145,20 @@ export class InteractionHandler implements OnDestroy {
     } else {
       console.log('[EditHolds] Hold deletion cancelled');
     }
+  }
+
+  private onHoldRightClicked(holdId: number): void {
+    const mode = this.modeStore.mode();
+
+    // Only handle right-click in CreateRoute mode
+    if (mode !== AppMode.CreateRoute) {
+      console.log(`[${mode}] Hold right-clicked:`, holdId, '(ignored - not in CreateRoute mode)');
+      return;
+    }
+
+    console.log('[CreateRoute] Hold right-clicked:', holdId);
+    // Cycle through flag states
+    this.createRouteState.cycleHoldFlags(holdId);
   }
 
   private onHoldDragStarted(holdId: number): void {

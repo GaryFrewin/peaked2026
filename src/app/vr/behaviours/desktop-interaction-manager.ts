@@ -50,6 +50,7 @@ export function registerDesktopInteractionManager(): void {
       this.threshold = 0.001; 
       this.holdPressTimerId = null;
       this.pressState = null;
+      this.mouseButton = null; // Track which button was pressed (0=left, 2=right)
 
       // Double-click detection state
       this.lastClickTime = null;
@@ -62,6 +63,14 @@ export function registerDesktopInteractionManager(): void {
       this.onMouseMove = this.onMouseMove.bind(this);
       this.onMouseEnter = this.onMouseEnter.bind(this);
       this.onMouseLeave = this.onMouseLeave.bind(this);
+      this.onContextMenu = this.onContextMenu.bind(this);
+      this.onNativeMouseDown = this.onNativeMouseDown.bind(this);
+
+      // Listen for NATIVE mousedown to capture button info (A-Frame events don't have it)
+      const canvas = this.el.sceneEl?.canvas;
+      if (canvas) {
+        canvas.addEventListener('mousedown', this.onNativeMouseDown, true);
+      }
 
       // Listen for mouse events for click-vs-drag
       this.el.addEventListener('mousedown', this.onMouseDown);
@@ -69,14 +78,26 @@ export function registerDesktopInteractionManager(): void {
       this.el.addEventListener('mousemove', this.onMouseMove);
       this.el.addEventListener('mouseenter', this.onMouseEnter);
       this.el.addEventListener('mouseleave', this.onMouseLeave);
+      this.el.addEventListener('contextmenu', this.onContextMenu);
     },
 
     remove: function () {
+      const canvas = this.el.sceneEl?.canvas;
+      if (canvas) {
+        canvas.removeEventListener('mousedown', this.onNativeMouseDown, true);
+      }
+
       this.el.removeEventListener('mousedown', this.onMouseDown);
       this.el.removeEventListener('mouseup', this.onMouseUp);
       this.el.removeEventListener('mousemove', this.onMouseMove);
       this.el.removeEventListener('mouseenter', this.onMouseEnter);
       this.el.removeEventListener('mouseleave', this.onMouseLeave);
+      this.el.removeEventListener('contextmenu', this.onContextMenu);
+    },
+
+    onNativeMouseDown: function (event: any) {
+      // Capture the native mouse button (0=left, 1=middle, 2=right)
+      this.mouseButton = event.button;
     },
 
 
@@ -115,11 +136,16 @@ export function registerDesktopInteractionManager(): void {
       const intersection = event.detail?.intersection;
       console.log('[desktop-interaction-manager] Mouse up event:', intersection);
       if (this.pointerDownDistance === null) return;
+      
+      // Use the native mouse button we captured in onNativeMouseDown
+      // (undefined = left for backward compatibility with tests)
+      const isLeftClick = this.mouseButton === null || this.mouseButton === undefined || this.mouseButton === 0;
+      const isRightClick = this.mouseButton === 2;
       const delta = intersection ? intersection.distance - this.pointerDownDistance : 0;
       const target = event.target;
 
       const hasDragged = delta !== 0;
-      console.log('[desktop-interaction-manager] has dragged:', hasDragged, 'delta:', delta);
+      console.log('[desktop-interaction-manager] has dragged:', hasDragged, 'delta:', delta, 'button:', this.mouseButton);
 
       if (this.pressState?.dragging) {
         const holdId = this.pressState.holdId;
@@ -127,8 +153,29 @@ export function registerDesktopInteractionManager(): void {
         (window as any).peakedBus?.emitHoldDragEnded?.(holdId);
       }
 
-      // Only treat as click if movement is within threshold, and same target
+      // Handle RIGHT-click (cycle hold type)
       if (
+        isRightClick &&
+        !hasDragged &&
+        !this.pressState?.dragging
+      ) {
+        console.log('[desktop-interaction-manager] RIGHT CLICK DETECTED!', target);
+        // Check what was right-clicked
+        if (target.classList.contains('hold')) {
+          const holdIdStr = target.getAttribute('data-hold-id');
+          const holdId = holdIdStr ? parseInt(holdIdStr, 10) : null;
+
+          if (holdId !== null && !isNaN(holdId)) {
+            this.log('holdRightClicked', { holdId });
+            console.log('[desktop-interaction-manager] Emitting holdRightClicked for hold:', holdId);
+            (window as any).peakedBus?.emitHoldRightClicked(holdId);
+          }
+        }
+      }
+
+      // Handle LEFT-click (toggle route membership, select, etc)
+      if (
+        isLeftClick &&
         !hasDragged &&
         !this.pressState?.dragging
       ) {
@@ -139,6 +186,9 @@ export function registerDesktopInteractionManager(): void {
           this.handleWallClick(target, event);
         }
       }
+      
+      // Reset button tracking
+      this.mouseButton = null;
       this.pointerDownDistance = null;
       this.pointerDownTarget = null;
       this.clearHoldPressTimer();
@@ -180,6 +230,31 @@ export function registerDesktopInteractionManager(): void {
       if (this.pointerDownDistance === null) {
         this.clearHoldPressTimer();
       }
+    },
+
+    onContextMenu: function (event: any) {
+      console.log('[desktop-interaction-manager] onContextMenu fired', event.target);
+      
+      // Prevent browser context menu immediately
+      event.preventDefault();
+      event.stopPropagation();
+
+      const target = event.target;
+      if (!target || !target.classList.contains('hold')) {
+        console.log('[desktop-interaction-manager] contextmenu target not a hold:', target?.classList);
+        return;
+      }
+
+      const holdIdStr = target.getAttribute('data-hold-id');
+      const holdId = holdIdStr ? parseInt(holdIdStr, 10) : null;
+
+      if (holdId === null || isNaN(holdId)) {
+        this.log('Hold right-clicked but no valid data-hold-id found');
+        return;
+      }
+
+      this.log('holdRightClicked', { holdId });
+      (window as any).peakedBus?.emitHoldRightClicked(holdId);
     },
 
     handleHoldClick: function (target: HTMLElement, event: any) {
