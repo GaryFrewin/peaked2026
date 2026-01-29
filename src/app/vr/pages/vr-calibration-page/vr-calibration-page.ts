@@ -187,6 +187,10 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     // Get wall-container reference for alignment
     this.wallContainer = document.getElementById('wall-container');
 
+    // Clear any existing anchor at calibration start
+    // This prevents the anchor from overriding manual adjustments during calibration
+    this.clearExistingAnchor();
+
     // Listen for marker-placed events (Step 1 - real markers)
     if (this.rightController) {
       this.rightController.addEventListener('marker-placed', ((event: CustomEvent) => {
@@ -553,9 +557,32 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Add the calibrated-anchor component dynamically if not already present
     const anchorComponent = (this.wallContainer as any).components?.['calibrated-anchor'];
     if (!anchorComponent) {
-      console.error('[VrCalibrationPage] Cannot create anchor - calibrated-anchor component not found');
+      console.log('[VrCalibrationPage] Adding calibrated-anchor component to wall-container');
+      (this.wallContainer as any).setAttribute('calibrated-anchor', 'storageKey: wall-calibration');
+      
+      // Wait a tick for the component to initialize before creating anchor
+      setTimeout(() => {
+        this.createAnchorInternal();
+      }, 100);
+    } else {
+      this.createAnchorInternal();
+    }
+  }
+
+  /**
+   * Internal method to actually create the anchor after component is ready
+   */
+  private createAnchorInternal(): void {
+    if (!this.wallContainer) {
+      return;
+    }
+
+    const anchorComponent = (this.wallContainer as any).components?.['calibrated-anchor'];
+    if (!anchorComponent) {
+      console.error('[VrCalibrationPage] calibrated-anchor component still not found after initialization');
       return;
     }
 
@@ -575,5 +602,28 @@ export class VrCalibrationPageComponent implements OnInit, AfterViewInit {
     this.anchorId.set(persistentHandle);
 
     console.log('[VrCalibrationPage] Wall calibration complete! Anchor ID:', persistentHandle);
+  }
+
+  /**
+   * Clear any existing anchor at the start of calibration.
+   * This ensures the wall can be freely manipulated during calibration
+   * without the anchor constantly pulling it back to a saved position.
+   * 
+   * Note: Since we removed the calibrated-anchor component from the template,
+   * this method now clears the anchor from localStorage directly.
+   */
+  private clearExistingAnchor(): void {
+    console.log('[VrCalibrationPage] Clearing existing anchor data from localStorage');
+    
+    // Clear the stored anchor data so it doesn't interfere with calibration
+    const storageKey = 'anchor-wall-calibration';
+    const storedData = localStorage.getItem(storageKey);
+    
+    if (storedData) {
+      console.log('[VrCalibrationPage] Found existing anchor data, removing:', storedData);
+      localStorage.removeItem(storageKey);
+    } else {
+      console.log('[VrCalibrationPage] No existing anchor data found');
+    }
   }
 }

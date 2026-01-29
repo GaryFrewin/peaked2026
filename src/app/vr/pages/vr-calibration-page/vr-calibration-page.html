@@ -150,14 +150,16 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- WALL MODEL - 3D climbing wall (visible in Steps 2-4)    -->
   <!-- Always rendered, visibility controlled to preserve state -->
+  <!-- Note: calibrated-anchor should NOT be applied during calibration -->
+  <!-- as it would override manual adjustments. We only apply the anchor -->
+  <!-- at the END of calibration (step 4 -> complete transition) -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <a-entity 
     id="wall-container" 
     position="0 0 -2"
     [attr.visible]="showWallModel()"
     wall-manipulator="leftController: #leftController; rightController: #rightController"
-    triangle-align="animate: false"
-    calibrated-anchor="storageKey: wall-calibration">
+    triangle-align="animate: false">
       @if (modelPath()) {
         <a-entity
           id="garage"
