@@ -1,0 +1,112 @@
+<div class="route-creation-panel">
+  <!-- Metadata Form -->
+  <div class="form-section">
+    <!-- Name (Required) -->
+    <div class="form-field">
+      <label for="routeName" class="pk-label">
+        Name <span style="color: var(--pk-danger)">*</span>
+      </label>
+      <input
+        pInputText
+        id="routeName"
+        [ngModel]="routeName()"
+        (ngModelChange)="routeName.set($event)"
+        placeholder="My Awesome Route"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Grades Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div class="form-field">
+        <label for="forwardGrade" class="pk-label">
+          Grade (V-scale) <span style="color: var(--pk-danger)">*</span>
+        </label>
+        <p-inputnumber
+          inputId="forwardGrade"
+          [ngModel]="forwardGrade()"
+          (ngModelChange)="forwardGrade.set($event)"
+          [min]="0"
+          [max]="20"
+          [showButtons]="true"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="reverseGrade" class="pk-label">Reverse Grade</label>
+        <p-inputnumber
+          inputId="reverseGrade"
+          [ngModel]="reverseGrade()"
+          (ngModelChange)="reverseGrade.set($event)"
+          [min]="0"
+          [max]="20"
+          [showButtons]="true"
+        />
+      </div>
+    </div>
+
+    <!-- Star Ratings Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div class="form-field">
+        <label for="forwardStars" class="pk-label">Forward ⭐</label>
+        <p-inputnumber
+          inputId="forwardStars"
+          [ngModel]="forwardStarRating()"
+          (ngModelChange)="forwardStarRating.set($event)"
+          [min]="1"
+          [max]="5"
+          [showButtons]="true"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="reverseStars" class="pk-label">Reverse ⭐</label>
+        <p-inputnumber
+          inputId="reverseStars"
+          [ngModel]="reverseStarRating()"
+          (ngModelChange)="reverseStarRating.set($event)"
+          [min]="1"
+          [max]="5"
+          [showButtons]="true"
+        />
+      </div>
+    </div>
+
+    <!-- Styles -->
+    <div class="form-field">
+      <label for="styles" class="pk-label">Styles</label>
+      <p-multiselect
+        inputId="styles"
+        [ngModel]="selectedStyles()"
+        (ngModelChange)="selectedStyles.set($event)"
+        [options]="styles()"
+        optionLabel="name"
+        placeholder="Select climbing styles"
+        display="chip"
+        styleClass="w-full"
+      />
+    </div>
+
+    <!-- Notes -->
+    <div class="form-field">
+      <label for="notes" class="pk-label">Notes</label>
+      <textarea
+        pTextarea
+        id="notes"
+        [ngModel]="notes()"
+        (ngModelChange)="notes.set($event)"
+        rows="3"
+        placeholder="Route setter notes, beta, conditions..."
+        class="w-full"
+      ></textarea>
+    </div>
+
+    <!-- Validation hint -->
+    @if (holdCount() > 0 && holdCount() < 2) {
+      <small class="validation-message">
+        <i class="pi pi-info-circle"></i>
+        Add {{ 2 - holdCount() }} more hold(s) to save
+      </small>
+    }
+  </div>
+</div>
