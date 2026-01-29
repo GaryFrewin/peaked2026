@@ -4,6 +4,9 @@ import { CreateRouteStateStore } from '../../stores/create-route-state.store';
 import { ModeStore, AppMode } from '../../stores/mode.store';
 import { HoldStore } from '../../stores/hold.store';
 
+// THREE.js is provided globally by A-Frame
+declare const THREE: any;
+
 /**
  * A-Frame component that renders route holds as colored spheres.
  * 
@@ -47,6 +50,7 @@ AFRAME.registerComponent('route-hold-renderer', {
     // Store reference to child entities for cleanup
     this.holdEntities = new Map<number, any>();
     this.iconEntities = new Map<number, any>();
+    this.camera = null;
 
     // Get Angular services from the global app injector
     const injector = (window as any).__appInjector;
@@ -271,21 +275,50 @@ AFRAME.registerComponent('route-hold-renderer', {
     const iconSrc = hold.iconType === 'hand' ? ICON_PATHS.HAND : ICON_PATHS.FOOT;
 
     if (!iconEntity) {
-      // Create new icon entity
+      // Create new icon entity - will be rotated to face camera in tick()
       iconEntity = document.createElement('a-image');
       iconEntity.setAttribute('class', 'hold-icon');
-      iconEntity.setAttribute('width', '0.08');
-      iconEntity.setAttribute('height', '0.08');
-      iconEntity.setAttribute('look-at', '[camera]'); // Billboard to face camera
-      iconEntity.setAttribute('material', 'alphaTest: 0.5; transparent: true');
+      iconEntity.setAttribute('width', '0.15');
+      iconEntity.setAttribute('height', '0.15');
+      iconEntity.setAttribute('material', 'alphaTest: 0.1; transparent: true; depthTest: false');
+      
       this.el.appendChild(iconEntity);
       this.iconEntities.set(hold.holdId, iconEntity);
     }
 
-    // Update icon position (slightly above the hold sphere)
-    const iconY = hold.y + 0.12;
+    // Update icon position (above the hold sphere)
+    const iconY = hold.y + 0.14;
     iconEntity.setAttribute('position', `${hold.x} ${iconY} ${hold.z}`);
     iconEntity.setAttribute('src', iconSrc);
+  },
+
+  tick: function () {
+    // Make all icons face the camera
+    if (this.iconEntities.size === 0) return;
+
+    // Get camera reference (cache it)
+    if (!this.camera) {
+      this.camera = this.el.sceneEl?.camera;
+      if (!this.camera) return;
+    }
+
+    // Get camera world position
+    const cameraPosition = new THREE.Vector3();
+    this.camera.getWorldPosition(cameraPosition);
+
+    // Rotate each icon to face camera
+    this.iconEntities.forEach((iconEntity: any) => {
+      if (!iconEntity.object3D) return;
+      
+      const iconPosition = iconEntity.object3D.position;
+      
+      // Calculate rotation to face camera (only Y-axis rotation for billboard effect)
+      const dx = cameraPosition.x - iconPosition.x;
+      const dz = cameraPosition.z - iconPosition.z;
+      const angle = Math.atan2(dx, dz);
+      
+      iconEntity.object3D.rotation.y = angle;
+    });
   },
 
   clearAllHolds: function () {
